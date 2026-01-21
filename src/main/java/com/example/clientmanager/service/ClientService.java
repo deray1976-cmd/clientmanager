@@ -47,7 +47,7 @@ public class ClientService {
     // -------------------------
     public ClientDto findById(Long id) {
         Client client = clientRepository.findById(id)
-                .orElseThrow(() -> new ClientNotFoundException( id));
+                .orElseThrow(() -> new ClientNotFoundException(id));
         return new ClientDto(client);
     }   
 

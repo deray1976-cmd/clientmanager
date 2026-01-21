@@ -33,33 +33,25 @@ private final ClientService clientService;
 
     @GetMapping("/{id}")
     public ResponseEntity<ClientDto> getClientById(@PathVariable Long id) {
-        try {
-            ClientDto client = clientService.findById(id);
-            return ResponseEntity.ok(client);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        ClientDto client = clientService.findById(id); // llença ClientNotFoundException si no existeix
+        return ResponseEntity.ok(client);
     }
     
     @PutMapping("/{id}")
     public ResponseEntity<ClientDto> updateClient(
         @PathVariable Long id,
         @RequestBody ClientDto clientDto) {
-        try {
+        
             ClientDto updated = clientService.update(id, clientDto);
             return ResponseEntity.ok(updated);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteClient(@PathVariable Long id) {
-        try {
+        
             clientService.delete(id);
             return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        
     }
 }
