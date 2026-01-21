@@ -61,9 +61,15 @@ class ClientControllerIntegrationTest {
     @Test
     void testGetClientNotFound_404() throws Exception {
         // GET amb ID no existent ha de retornar 404
-        mockMvc.perform(get("/clients/99"))
+        /*mockMvc.perform(get("/clients/99"))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string("Client amb id 99 no trobat"));
+        */
+        mockMvc.perform(get("/clients/99"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Client amb id 99 no trobat"))
+                .andExpect(jsonPath("$.path").value("/clients/99"))
+                .andExpect(jsonPath("$.timestamp").exists());
     }
 
     @Test
@@ -71,7 +77,9 @@ class ClientControllerIntegrationTest {
         // DELETE amb ID no existent ha de retornar 404
         mockMvc.perform(delete("/clients/99"))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string("Client amb id 99 no trobat"));
+                .andExpect(jsonPath("$.message").value("Client amb id 99 no trobat"))
+                .andExpect(jsonPath("$.path").value("/clients/99"))
+                .andExpect(jsonPath("$.timestamp").exists());
     }
 
 }

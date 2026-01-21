@@ -3,18 +3,39 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.springframework.web.bind.MethodArgumentNotValidException;
+
+import java.time.LocalDateTime;
+
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
 
-@ExceptionHandler(ClientNotFoundException.class)
-    public ResponseEntity<String> handleClientNotFound(ClientNotFoundException ex) {
+//@ExceptionHandler(ClientNotFoundException.class)
+/*     public ResponseEntity<String> handleClientNotFound(ClientNotFoundException ex) {
         // Retorna exactament el missatge que espera el test
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                              .body("Client amb id " + ex.getId() + " no trobat");
     }
+*/
+@ExceptionHandler(ClientNotFoundException.class)
+    public ResponseEntity<ApiError> handleClientNotFound(ClientNotFoundException ex,
+                                                         HttpServletRequest request) {
+        ApiError error = new ApiError(
+                LocalDateTime.now(),     // timestamp
+                request.getRequestURI(), // path
+                ex.getMessage()          // missatge
+        );
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+
+
+
 @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<String> handleValidationErrors(MethodArgumentNotValidException ex) {
     String error = ex.getBindingResult()
@@ -27,10 +48,20 @@ public class GlobalExceptionHandler {
             .body(error);
     }
 
-    @ExceptionHandler(Exception.class)
-public ResponseEntity<String> handleGeneric(Exception ex) {
+   /*  @ExceptionHandler(Exception.class)
+public ResponseEntity<String> handleGeneralException(Exception ex) {
     return ResponseEntity
             .status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body("Error intern del servidor");
-}
+}*/
+
+@ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> handleGeneralException(Exception ex, HttpServletRequest request) {
+        ApiError error = new ApiError(
+                LocalDateTime.now(),
+                request.getRequestURI(),
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
 }
