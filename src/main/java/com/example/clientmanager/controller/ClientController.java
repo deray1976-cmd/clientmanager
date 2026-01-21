@@ -18,14 +18,12 @@ private final ClientService clientService;
         this.clientService = clientService;
     }
 
-     // ✅ POST per crear un client
+     // POST per crear un client
     @PostMapping
     public ResponseEntity<ClientDto> createClient(@RequestBody ClientDto clientDto) {
-    ClientDto created = clientService.createClient(clientDto);
-    //return ResponseEntity.ok(created);
-    return ResponseEntity.status(HttpStatus.CREATED).body(created);
-
-}
+        ClientDto created = clientService.createClient(clientDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
 
     // GET per llistar clients
     @GetMapping
@@ -35,25 +33,33 @@ private final ClientService clientService;
 
     @GetMapping("/{id}")
     public ResponseEntity<ClientDto> getClientById(@PathVariable Long id) {
-        return clientService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            ClientDto client = clientService.findById(id);
+            return ResponseEntity.ok(client);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
-
     
     @PutMapping("/{id}")
     public ResponseEntity<ClientDto> updateClient(
         @PathVariable Long id,
         @RequestBody ClientDto clientDto) {
-        return clientService.update(id, clientDto)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
-}
+        try {
+            ClientDto updated = clientService.update(id, clientDto);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteClient(@PathVariable Long id) {
-        return clientService.delete(id)
-        ? ResponseEntity.noContent().build()
-        : ResponseEntity.notFound().build();
+        try {
+            clientService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 }

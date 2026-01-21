@@ -1,10 +1,10 @@
 package com.example.clientmanager;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -16,6 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.clientmanager.dto.ClientDto;
+import com.example.clientmanager.exception.ClientNotFoundException;
 import com.example.clientmanager.model.Client;
 import com.example.clientmanager.repository.ClientRepository;
 import com.example.clientmanager.service.ClientService;
@@ -43,24 +44,21 @@ class ClientmanagerApplicationTests {
         assertEquals("Joan", clients.get(0).getClient().getName());
     }
 
-    @Test
+     @Test
     void testFindByIdExists() {
         Client c = new Client("Joan", "joan@example.com");
-        Mockito.when(clientRepository.findById(1L)).thenReturn(Optional.of(c));
+        Mockito.when(clientRepository.findById(1L)).thenReturn(java.util.Optional.of(c));
 
-        Optional<ClientDto> result = clientService.findById(1L);
+        ClientDto result = clientService.findById(1L);
 
-        assertTrue(result.isPresent());
-        assertEquals("Joan", result.get().getClient().getName());
+        assertEquals("Joan", result.getClient().getName());
     }
 
-    @Test
+     @Test
     void testFindByIdNotExists() {
-        Mockito.when(clientRepository.findById(99L)).thenReturn(Optional.empty());
+        Mockito.when(clientRepository.findById(99L)).thenReturn(java.util.Optional.empty());
 
-        Optional<ClientDto> result = clientService.findById(99L);
-
-        assertTrue(result.isEmpty());
+        assertThrows(ClientNotFoundException.class, () -> clientService.findById(99L));
     }
 
     @Test
@@ -76,27 +74,38 @@ class ClientmanagerApplicationTests {
     }
 
     @Test
-    void testUpdateClient() {
+    void testUpdateClientExists() {
         Client existing = new Client("Joan", "joan@example.com");
         Client updated = new Client("Joan Updated", "joan.new@example.com");
-        Mockito.when(clientRepository.findById(1L)).thenReturn(Optional.of(existing));
+        Mockito.when(clientRepository.findById(1L)).thenReturn(java.util.Optional.of(existing));
         Mockito.when(clientRepository.save(existing)).thenReturn(updated);
 
-        Optional<ClientDto> result = clientService.update(1L,new ClientDto(updated));
+        ClientDto result = clientService.update(1L, new ClientDto(updated));
 
-        assertTrue(result.isPresent());
-        assertEquals("Joan Updated", result.get().getClient().getName());
+        assertEquals("Joan Updated", result.getClient().getName());
     }
 
     @Test
-    void testDeleteClient() {
+    void testUpdateClientNotExists() {
+        Mockito.when(clientRepository.findById(99L)).thenReturn(java.util.Optional.empty());
+
+        assertThrows(ClientNotFoundException.class,
+                     () -> clientService.update(99L, new ClientDto(new Client())));
+    }
+
+    @Test
+    void testDeleteClientExists() {
         Client c = new Client("Joan", "joan@example.com");
-        Mockito.when(clientRepository.findById(1L)).thenReturn(Optional.of(c));
-
-        boolean deleted = clientService.delete(1L);
-
-        assertTrue(deleted);
+        Mockito.when(clientRepository.findById(1L)).thenReturn(java.util.Optional.of(c));
+        clientService.delete(1L);
         Mockito.verify(clientRepository).delete(c);
+    }
+
+    @Test
+    void testDeleteClientNotExists() {
+        Mockito.when(clientRepository.findById(99L)).thenReturn(java.util.Optional.empty());
+
+        assertThrows(ClientNotFoundException.class, () -> clientService.delete(99L));
     }
 
 }
