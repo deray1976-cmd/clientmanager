@@ -3,12 +3,10 @@ package com.example.clientmanager.repository;
 //import java.util.ArrayList;
 //import java.util.List;
 
-import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-//import com.example.clientmanager.dto.*;
-import com.example.clientmanager.model.*;
-@Repository
+import com.example.clientmanager.model.Client;
+
 public interface ClientRepository extends JpaRepository<Client, Long> {
 
     
