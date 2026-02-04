@@ -1,13 +1,14 @@
 package com.example.clientmanager.service;
 
 import java.util.List;
-
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.clientmanager.dto.ClientDto;
+import com.example.clientmanager.dto.ClientMapper;
 import com.example.clientmanager.exception.ClientNotFoundException;
 import com.example.clientmanager.model.Client;
 import com.example.clientmanager.repository.ClientRepository;
@@ -22,56 +23,88 @@ public class ClientService {
         this.clientRepository = clientRepository;
     }
 
-    // Mètode per crear client a partir de dades individuals
-    public void createClient(Long id, String name, String email) {
-         createClient(new ClientDto(name,email));
+    // -------------------------
+    // CREAR CLIENT
+    // -------------------------
+    @Transactional
+    public ClientDto createClient(ClientDto clientDto) {
+        Objects.requireNonNull(clientDto, "ClientDto no pot ser null");
+
+        // Transformar DTO a entitat
+        Client clientEntity = ClientMapper.toEntity(clientDto);
+
+        // Guardar a la base de dades
+        Client savedClient = clientRepository.save(Objects.requireNonNull(clientEntity));
+
+        // Transformar a DTO per retornar
+        return ClientMapper.toDto(savedClient);
     }
 
-    // Obtenir tots els clients
+  
+    // Mètode auxiliar per crear client a partir de dades individuals
+    @Transactional
+    public ClientDto createClient(String name, String email) {
+        Objects.requireNonNull(name, "El nom no pot ser null");
+        Objects.requireNonNull(email, "L'email no pot ser null");
+
+        ClientDto dto = new ClientDto(null, name, email, null);
+        return createClient(dto);
+    }
+
+    // -------------------------
+    // TROBAR TOTS ELS CLIENTS
+    // -------------------------
     public List<ClientDto> getAllClients() {
         return clientRepository.findAll()
                 .stream()
-                .map(client -> new ClientDto(client))
+                .map(ClientMapper::toDto)
                 .collect(Collectors.toList());
     }
 
-    // Mètode per crear client a partir de ClientDto
-    @Transactional
-    public ClientDto createClient(ClientDto clientDto) {
-        ClientDto savedClient = new ClientDto(clientRepository.save(clientDto.getClient()));
-        return savedClient;
+    // -------------------------
+    // TROBAR PER ID
+    // -------------------------
+    public ClientDto findById(Long id) {
+        Objects.requireNonNull(id, "L'id no pot ser null");
+
+        Client client = clientRepository.findById(id)
+                .orElseThrow(() -> new ClientNotFoundException(id));
+
+        return ClientMapper.toDto(client);
     }
 
      // -------------------------
-    // FIND BY ID
-    // -------------------------
-    public ClientDto findById(Long id) {
-        Client client = clientRepository.findById(id)
-                .orElseThrow(() -> new ClientNotFoundException(id));
-        return new ClientDto(client);
-    }   
-
-    // -------------------------
-    // UPDATE
+    // ACTUALITZAR CLIENT
     // -------------------------
     @Transactional
-    public ClientDto update(Long id, ClientDto clientDetails) {
-         Client existingClient = clientRepository.findById(id)
+    public ClientDto update(Long id, ClientDto clientDto) {
+        Objects.requireNonNull(id, "L'id no pot ser null");
+        Objects.requireNonNull(clientDto, "ClientDto no pot ser null");
+
+        Client existingClient = clientRepository.findById(id)
                 .orElseThrow(() -> new ClientNotFoundException(id));
 
-            existingClient.setName(clientDetails.getClient().getName());
-            existingClient.setEmail(clientDetails.getClient().getEmail());
-            Client updatedClient = clientRepository.save(existingClient);
-        return new ClientDto(updatedClient);
-    }
+        // Actualitzar camps
+        existingClient.setName(clientDto.name());
+        existingClient.setEmail(clientDto.email());
 
+        // Guardar entitat actualitzada
+        Client updatedClient = clientRepository.save(existingClient);
+
+        return ClientMapper.toDto(updatedClient);
+    }
+    
     // -------------------------
-    // DELETE
+    // ELIMINAR CLIENT
     // -------------------------
     @Transactional
     public void delete(Long id) {
-        Client client = clientRepository.findById(id)
-                .orElseThrow(() -> new ClientNotFoundException(id));
+        
+        Objects.requireNonNull(id, "L'id no pot ser null");
+
+        Client client = Objects.requireNonNull(
+                clientRepository.findById(id)
+                                .orElseThrow(() -> new ClientNotFoundException(id)));
         clientRepository.delete(client);
     }
 }

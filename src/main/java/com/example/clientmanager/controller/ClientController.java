@@ -4,6 +4,8 @@ package com.example.clientmanager.controller;
 import com.example.clientmanager.dto.ClientDto;
 import com.example.clientmanager.service.ClientService;
 
+import jakarta.validation.Valid;
+
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -20,7 +22,7 @@ private final ClientService clientService;
 
      // POST per crear un client
     @PostMapping
-    public ResponseEntity<ClientDto> createClient(@RequestBody ClientDto clientDto) {
+    public ResponseEntity<ClientDto> createClient(@Valid @RequestBody ClientDto clientDto) {
         ClientDto created = clientService.createClient(clientDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
@@ -40,7 +42,7 @@ private final ClientService clientService;
     @PutMapping("/{id}")
     public ResponseEntity<ClientDto> updateClient(
         @PathVariable Long id,
-        @RequestBody ClientDto clientDto) {
+        @Valid @RequestBody ClientDto clientDto) {
         
             ClientDto updated = clientService.update(id, clientDto);
             return ResponseEntity.ok(updated);

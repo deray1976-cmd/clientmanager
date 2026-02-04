@@ -16,10 +16,14 @@ public class StartupRunner implements CommandLineRunner {
 @Override
 public void run(String... args) {
     System.out.println("Aplicació arrencada");
-    // Creem un ClientDto amb nom i email (ID pot ser null)
-    ClientDto clientDto = new ClientDto("Anna","anna@email.com");
+    // Creem un ClientDto amb nom i email (ID pot ser null, adreces null)
+    ClientDto clientDto = new ClientDto(null, "Anna", "anna@email.com", null);
+
  
-    service.createClient(clientDto);
-    System.out.println("Client guardat: " + clientDto.getClient().getName());
+    // Guardar client
+        ClientDto savedClient = service.createClient(clientDto);
+
+        // Imprimir nom després de guardar
+        System.out.println("Client guardat: " + savedClient.name());
    }
 }

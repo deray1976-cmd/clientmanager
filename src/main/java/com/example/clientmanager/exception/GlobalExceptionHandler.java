@@ -8,7 +8,10 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 
 @RestControllerAdvice
@@ -36,7 +39,7 @@ public class GlobalExceptionHandler {
 
 
 
-@ExceptionHandler(MethodArgumentNotValidException.class)
+/*@ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<String> handleValidationErrors(MethodArgumentNotValidException ex) {
     String error = ex.getBindingResult()
                      .getFieldErrors()
@@ -46,7 +49,26 @@ public class GlobalExceptionHandler {
     return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
             .body(error);
-    }
+    }*/
+
+@ExceptionHandler(MethodArgumentNotValidException.class)
+public ResponseEntity<Map<String, Object>> handleValidationErrors(
+        MethodArgumentNotValidException ex,
+        HttpServletRequest request) {
+
+    Map<String, String> errors = new HashMap<>();
+
+    ex.getBindingResult().getFieldErrors().forEach(error ->
+        errors.put(error.getField(), error.getDefaultMessage())
+    );
+
+    Map<String, Object> body = new HashMap<>();
+    body.put("timestamp", Instant.now());
+    body.put("path", request.getRequestURI());
+    body.put("errors", errors);
+
+    return ResponseEntity.badRequest().body(body);
+}
 
    /*  @ExceptionHandler(Exception.class)
 public ResponseEntity<String> handleGeneralException(Exception ex) {

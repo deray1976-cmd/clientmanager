@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 //import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -41,7 +42,8 @@ class ClientmanagerApplicationTests {
         List<ClientDto> clients = clientService.getAllClients();
 
         assertEquals(2, clients.size());
-        assertEquals("Joan", clients.get(0).getClient().getName());
+        assertEquals("Joan", clients.get(0).name());
+        assertEquals("Anna", clients.get(1).name());
     }
 
      @Test
@@ -51,7 +53,8 @@ class ClientmanagerApplicationTests {
 
         ClientDto result = clientService.findById(1L);
 
-        assertEquals("Joan", result.getClient().getName());
+        assertEquals("Joan", result.name());
+        assertEquals("joan@example.com", result.email());
     }
 
      @Test
@@ -63,14 +66,16 @@ class ClientmanagerApplicationTests {
 
     @Test
     void testCreateClient() {
-        Client c = new Client( "Joan", "joan@example.com");
-        Client saved = new Client("Joan", "joan@example.com"); saved.setId(1L); 
+        Client saved = new Client("Joan", "joan@example.com"); 
+        saved.setId(1L); 
         Mockito.when(clientRepository.save(Mockito.any(Client.class))).thenReturn(saved);
 
-        ClientDto result = clientService.createClient(new ClientDto(c));
+         // Crear DTO a partir de dades (sense entitat dins)
+        ClientDto dto = new ClientDto(null, "Joan", "joan@example.com", null);
+        ClientDto result = clientService.createClient(dto);
 
-        assertEquals(1L, result.getClient().getId());
-        assertEquals("Joan", result.getClient().getName());
+        assertEquals(1L, result.id());
+        assertEquals("Joan", result.name());
     }
 
     @Test
@@ -80,17 +85,21 @@ class ClientmanagerApplicationTests {
         Mockito.when(clientRepository.findById(1L)).thenReturn(java.util.Optional.of(existing));
         Mockito.when(clientRepository.save(existing)).thenReturn(updated);
 
-        ClientDto result = clientService.update(1L, new ClientDto(updated));
+        ClientDto updateDto = new ClientDto(null, "Joan Updated", "joan.new@example.com", null);
+        ClientDto result = clientService.update(1L, updateDto); 
 
-        assertEquals("Joan Updated", result.getClient().getName());
+        assertEquals("Joan Updated", result.name());
+        assertEquals("joan.new@example.com", result.email());
     }
 
     @Test
     void testUpdateClientNotExists() {
         Mockito.when(clientRepository.findById(99L)).thenReturn(java.util.Optional.empty());
 
+
+        ClientDto updateDto = new ClientDto(null, "Updated", "updated@test.com", null);
         assertThrows(ClientNotFoundException.class,
-                     () -> clientService.update(99L, new ClientDto(new Client())));
+                () -> clientService.update(99L, updateDto));
     }
 
     @Test
