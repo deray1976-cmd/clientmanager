@@ -1,6 +1,9 @@
 package com.example.clientmanager.model;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+//import jakarta.persistence.*;
+import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+
+//import jakarta.validation.constraints.NotBlank;
 
 
 @Entity

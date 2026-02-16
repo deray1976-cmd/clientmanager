@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestió de Clients</title>
+    <link rel="stylesheet" href="/css/style.css"> <!-- el CSS SAP GUI que vam fer -->
+</head>
+<body>
+
+<h2>Portal de Clients</h2>
+
+<form id="searchForm">
+    <label>Nom o Email del client:
+        <input type="text" id="searchInput" required>
+    </label>
+    <button type="submit">Cercar</button>
+</form>
+
+<button id="showAllBtn" style="margin-top:10px;">Veure tots els clients</button>
+
+<button id="addClientBtn" style="margin-top:20px;">Afegir Client</button>
+
+
+<div id="searchResult">
+    <table id="resultsTable">
+        <thead>
+            <tr>
+                <th>Accions</th>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Adreces</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script src="/js/search-client.js"></script>
+
+</body>
+
+</html>

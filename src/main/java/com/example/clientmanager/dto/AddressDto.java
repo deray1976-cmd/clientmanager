@@ -1,6 +1,8 @@
 package com.example.clientmanager.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import javax.validation.constraints.NotBlank;
+
+//import jakarta.validation.constraints.NotBlank;
 
 public record AddressDto(
         Long id,

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear Client</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<h2>Alta de Client</h2>
+
+<form id="clientForm">
+    <!-- Nom i email -->
+    <label>Nom: <input type="text" id="name" required></label>
+    <div id="name-error" class="error"></div>
+
+    <label>Email: <input type="email" id="email" required></label>
+    <div id="email-error" class="error"></div>
+
+    <h3>Adreces</h3>
+
+    <!-- Contenidor d’adreces -->
+    <div id="addresses-container">
+        <div class="address address-block">
+            <div class="address-fields">
+                <label>Carrer: <input type="text" class="street"></label>
+                <label>Ciutat: <input type="text" class="city"></label>
+            </div>
+            <button type="button" class="remove-address-btn" onclick="removeAddress(this)">Eliminar</button>
+        </div>
+    </div>
+
+    <!-- Botó per afegir nova adreça -->
+    <button type="button" onclick="addAddress()">+ Afegir adreça</button>
+
+    <!-- Submit -->
+    <button type="submit">Desar Client</button>
+</form>
+
+<pre id="result"></pre>
+
+<!-- JS separat -->
+<script src="/js/client-form.js"></script>
+</body>
+</html>

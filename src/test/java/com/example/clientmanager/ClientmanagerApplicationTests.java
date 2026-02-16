@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 //import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -67,6 +68,7 @@ class ClientmanagerApplicationTests {
     void testCreateClient() {
         Client saved = new Client("Joan", "joan@example.com"); 
         saved.setId(1L); 
+
         Mockito.when(clientRepository.save(Mockito.any(Client.class))).thenReturn(saved);
 
          // Crear DTO a partir de dades (sense entitat dins)
