@@ -1,6 +1,7 @@
 package com.example.clientmanager.controller;
 
 
+import com.example.clientmanager.dto.AddressDto;
 import com.example.clientmanager.dto.ClientDto;
 import com.example.clientmanager.service.ClientService;
 
@@ -63,7 +64,7 @@ public ResponseEntity<List<ClientDto>> getClients(
     public ResponseEntity<ClientDto> updateClient(
         @PathVariable Long id,
         @Valid @RequestBody ClientDto clientDto) {
-        
+            
             ClientDto updated = clientService.update(id, clientDto);
             return ResponseEntity.ok(updated);
         
@@ -76,4 +77,33 @@ public ResponseEntity<List<ClientDto>> getClients(
             return ResponseEntity.noContent().build();
         
     }
+
+ 
+    
+
+// ==========================
+// Actualitzar només adreces
+// ==========================
+@PutMapping("/{id:\\d+}/addresses")
+public ResponseEntity<List<AddressDto>> updateAddresses(
+        @PathVariable Long id,
+        @RequestBody List<AddressDto> addresses) {
+
+    List<AddressDto> updated = clientService.updateAddresses(id, addresses);
+    return ResponseEntity.ok(updated);
+}
+
+// ==========================
+// Eliminar una adreça
+// ==========================
+@DeleteMapping("/{clientId:\\d+}/addresses/{addressId:\\d+}")
+public ResponseEntity<Void> deleteAddress(
+        @PathVariable Long clientId,
+        @PathVariable Long addressId) {
+
+    clientService.deleteAddress(clientId, addressId);
+    return ResponseEntity.noContent().build();
+}
+
+
 }

@@ -1,14 +1,20 @@
 package com.example.clientmanager.dto;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
-import com.example.clientmanager.model.Address;
 import com.example.clientmanager.model.Client;
 
 @Component
 public class ClientMapper {
+
+    private final AddressMapper addressMapper;
+
+    public ClientMapper(AddressMapper addressMapper) {
+        this.addressMapper = addressMapper;
+    }
 
     // ENTITY -> DTO
     public ClientDto toDto(Client client) {
@@ -16,22 +22,14 @@ public class ClientMapper {
                 ? List.of()
                 : client.getAddresses()
                         .stream()
-                        .map(this::toDto)
-                        .toList();
+                        .map(addressMapper::toDto)
+                        .collect(Collectors.toList());
 
         return new ClientDto(
                 client.getId(),
                 client.getName(),
                 client.getEmail(),
                 addresses
-        );
-    }
-
-    public AddressDto toDto(Address address) {
-        return new AddressDto(
-                address.getId(),
-                address.getStreet(),
-                address.getCity()
         );
     }
 
@@ -45,18 +43,10 @@ public class ClientMapper {
         if (dto.addresses() != null) {
             dto.addresses()
                     .stream()
-                    .map(this::toEntity)
-                    .forEach(client::addAddress);
+                    .map(addressMapper::toEntity)
+                    .forEach(client::addAddress); // suposant que addAddress estableix client a Address
         }
 
         return client;
-    }
-
-    public Address toEntity(AddressDto dto) {
-        Address address = new Address();
-        address.setId(dto.id());
-        address.setStreet(dto.street());
-        address.setCity(dto.city());
-        return address;
     }
 }

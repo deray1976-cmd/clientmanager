@@ -1,105 +1,70 @@
-/* Cos general */
+/* ===================================== */
+/* GLOBAL */
+/* ===================================== */
+
 body {
-    font-family: Arial, Helvetica, sans-serif;
-    background-color: #e6ebf0; /* gris blau clar */
-    margin: 40px;
-    color: #222;
+    font-family: "72", Arial, sans-serif;
+    background-color: #f7f7f7;
+    margin: 0;
+    padding: 40px;
+    color: #32363a;
 }
 
-/* Formulari */
+h2, h3 {
+    font-weight: 600;
+    color: #0a6ed1;
+    margin-bottom: 20px;
+}
+
+/* ===================================== */
+/* FORMULARI */
+/* ===================================== */
+
 form {
     background-color: #ffffff;
-    padding: 20px;
-    border: 1px solid #a0a0a0; /* borde suau */
+    padding: 24px;
+    border-radius: 4px;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
     max-width: 650px;
 }
 
-/* Titulars */
-h2, h3 {
-    font-weight: bold;
-    color: #0052a5; /* blau SAP */
-    margin-bottom: 15px;
-}
-
-/* Labels i inputs alineats */
 label {
-    display: inline-block;
-    width: 120px;
-    margin-bottom: 10px;
-    font-weight: bold;
-    vertical-align: top;
-    color: #003366; /* blau fosc */
+    font-weight: 500;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 input[type="text"],
 input[type="email"] {
-    width: 400px;
-    padding: 5px 8px;
-    border: 1px solid #999;
-    background-color: #f9f9f9; /* input clar */
-    box-sizing: border-box;
-    vertical-align: middle;
+    padding: 8px 10px;
+    font-size: 14px;
+    border: 1px solid #ccd0d5;
+    border-radius: 4px;
+    background-color: #ffffff;
+    outline: none;
 }
 
-/* Bloc d’adreça */
-.address {
-    padding: 10px 0;
-    border-top: 2px solid #0052a5; /* separador blau */
+input[type="text"]:focus,
+input[type="email"]:focus {
+    border-color: #0a6ed1;
 }
 
-/* Botons */
-button {
-    padding: 6px 12px;
-    margin-top: 15px;
-    border: 1px solid #0052a5;
-    background-color: #cce0ff; /* blau suau */
-    color: #003366; /* text blau fosc */
-    cursor: pointer;
-    font-size: 13px;
-}
-
-button:hover {
-    background-color: #99c2ff;
-}
-
-/* Errors */
-.error {
-    color: red;
-    font-size: 12px;
-    margin-left: 120px; /* alineat amb input */
-    margin-top: 2px;
-}
-
-/* Separador horitzontal per adreces */
-hr {
-    border: none;
-    border-top: 1px solid #0052a5;
-    margin: 10px 0;
-}
-
-form {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
+/* ===================================== */
+/* ADRECES (FORMULARI DINÀMIC) */
+/* ===================================== */
 
 .address-block {
     display: flex;
     flex-direction: column;
     gap: 10px;
-
-    padding: 10px;
-    border: 1px solid #b0b0b0;
+    padding: 16px;
+    border: 1px solid #d9d9d9;
     border-radius: 4px;
-    background-color: #f5f8fb; /* estil SAP */
-}
-
-.address {
-    display: flex;
-    flex-direction: column;
-    gap: 10px; /* espai vertical entre inputs i botó */
-    padding: 10px;
-    border-top: 2px solid #0052a5;
+    background-color: #f3f6f9;
 }
 
 .address-fields {
@@ -110,34 +75,145 @@ form {
 
 .remove-address-btn {
     align-self: flex-start;
-    margin-top: 5px;
 }
 
-/* Taula SAP */
+/* ===================================== */
+/* BOTONS */
+/* ===================================== */
+
+button {
+    background-color: #0a6ed1;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+button:hover {
+    background-color: #0854a0;
+}
+
+button:active {
+    background-color: #0a4b8c;
+}
+
+/* Botons específics */
+
+.update-btn {
+    background-color: #107e3e;
+}
+
+.update-btn:hover {
+    background-color: #0b5e2d;
+}
+
+.delete-btn {
+    background-color: #bb0000;
+}
+
+.delete-btn:hover {
+    background-color: #8f0000;
+}
+
+/* ===================================== */
+/* TAULA CLIENTS */
+/* ===================================== */
+
+#searchResult {
+    margin-top: 30px;
+}
+
 #resultsTable {
-    border-collapse: collapse;
     width: 100%;
-    background-color: #f5f8fb; /* gris suau de fons */
-    margin-top: 20px;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+#resultsTable thead {
+    background-color: #f3f6f9;
 }
 
 #resultsTable th {
-    background-color: #0052a5; /* blau SAP */
-    color: white;
-    padding: 8px 12px;
     text-align: left;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 14px;
+    border-bottom: 1px solid #d9d9d9;
 }
 
 #resultsTable td {
-    padding: 8px 12px;
-    border: 1px solid #b0b0b0;
-    vertical-align: top;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e5e5;
+    font-size: 14px;
+    vertical-align: middle;
 }
 
-#resultsTable tr:nth-child(even) {
-    background-color: #e6ebf0; /* alternat blau clar */
+#resultsTable tr:last-child td {
+    border-bottom: none;
 }
 
 #resultsTable tr:hover {
-    background-color: #cce0ff; /* hover blau clar */
+    background-color: #f5faff;
+}
+
+/* ===================================== */
+/* ERROR MISSATGES */
+/* ===================================== */
+
+.error {
+    color: #bb0000;
+    font-size: 12px;
+}
+
+
+/* Contenidor de botons sobre la taula */
+.btn-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+/* Estil base de tots els botons dins del popup */
+.btn-container .btn {
+    padding: 8px 15px;
+    border-radius: 4px;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    transition: opacity 0.2s;
+}
+
+.btn-container .btn:hover {
+    opacity: 0.9;
+}
+
+/* Botó Afegir adreça verd */
+.btn-container .btn-add {
+    background-color: #28a745;
+}
+
+/* Botó Tancar gris */
+.btn-container .btn-close {
+    background-color: #6c757d;
+}
+
+.btn-reset {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    margin-left: 0.5rem;
+    cursor: pointer;
+}
+
+.btn-reset:hover {
+    opacity: 0.9;
 }
