@@ -217,3 +217,29 @@ button:active {
 .btn-reset:hover {
     opacity: 0.9;
 }
+
+input[type="number"] {
+    padding: 8px 10px;
+    font-size: 14px;
+    border: 1px solid #ccd0d5;
+    border-radius: 4px;
+    background-color: #ffffff;
+    outline: none;
+}
+
+input[type="number"]:focus {
+    border-color: #0a6ed1;
+}
+
+.search-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.search-grid label {
+    display: flex;
+    flex-direction: column;
+    font-weight: bold;
+}

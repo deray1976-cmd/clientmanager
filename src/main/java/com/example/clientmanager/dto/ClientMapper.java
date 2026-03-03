@@ -25,9 +25,12 @@ public class ClientMapper {
                         .map(addressMapper::toDto)
                         .collect(Collectors.toList());
 
-        return new ClientDto(
+           return new ClientDto(
                 client.getId(),
                 client.getName(),
+                client.getSurname(),   // nou camp cognom
+                client.getEdat(),       // nou camp edat
+                client.getDni(),       // nou camp dni
                 client.getEmail(),
                 addresses
         );
@@ -39,6 +42,10 @@ public class ClientMapper {
         client.setId(dto.id());
         client.setName(dto.name());
         client.setEmail(dto.email());
+        client.setSurname(dto.surname());   // nou camp cognom
+        client.setEdat(dto.edat());           // nou camp edat
+        client.setDni(dto.dni());           // nou camp dni
+        client.setEmail(dto.email());
 
         if (dto.addresses() != null) {
             dto.addresses()
@@ -49,4 +56,15 @@ public class ClientMapper {
 
         return client;
     }
+
+    public ClientSummaryDto toSummaryDto(Client client) {
+    return new ClientSummaryDto(
+        client.getId(),
+        client.getName(),
+        client.getSurname(),  // afegim cognom al resum si volem
+        client.getEdat(),
+        client.getDni(),
+        client.getEmail()
+    );
+}
 }

@@ -1,0 +1,10 @@
+client.portal.title=Portal de Clients
+client.form.title=Crear Client
+client.name=Nom
+client.email=Correu electrònic
+client.address=Adreça
+button.add=Afegir
+button.reset=Restableix
+button.all=Veure tots els clients
+button.save=Desar
+button.close=Tancar

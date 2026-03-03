@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
 
     const searchForm = document.getElementById("searchForm");
-    const searchInput = document.getElementById("searchInput");
     const table = document.getElementById("resultsTable");
     const tbody = table.querySelector("tbody");
     const addClientBtn = document.getElementById("addClientBtn");
@@ -9,7 +8,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const resetBtn = document.getElementById("resetBtn"); 
 
     table.style.display = "none";
-
 
     // ============================
     // FETCH CLIENTS
@@ -28,33 +26,44 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ============================
-    // CERCA
-    // ============================
-    searchForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        const query = searchInput.value.trim();
-        if (!query) return;
+// CERCA
+// ============================
+searchForm.addEventListener("submit", function (e) {
+    e.preventDefault();
 
-        fetchClients("http://localhost:8080/clients?query=" + encodeURIComponent(query));
-    });
+    const name = document.getElementById("searchName").value.trim();
+    const surname = document.getElementById("searchSurname").value.trim();
+    const edat = document.getElementById("searchEdat").value.trim();
+    const dni = document.getElementById("searchDni").value.trim();
+    const email = document.getElementById("searchEmail").value.trim();
+
+    const params = new URLSearchParams();
+
+    if (name) params.append("name", name);
+    if (surname) params.append("surname", surname);
+    if (edat) params.append("edat", edat);
+    if (dni) params.append("dni", dni);
+    if (email) params.append("email", email);
+
+    //fetchClients("http://localhost:8080/clients/search?" + params.toString());
+    alert("submit "+params.toString());
+    fetchClients("http://localhost:8080/clients?" + params.toString());
+});
 
     // ============================
     // VEURE TOTS
     // ============================
     showAllBtn.addEventListener("click", function () {
-        searchInput.value = "";
+        document.getElementById("searchName").value = "";
+        document.getElementById("searchSurname").value = "";
+        document.getElementById("searchEdat").value = "";
+        document.getElementById("searchDni").value = "";
+        document.getElementById("searchEmail").value = "";
         fetchClients("http://localhost:8080/clients");
     });
 
     // ============================
-    // AFEGIR CLIENT
-    // ============================
-    //addClientBtn.addEventListener("click", function () {
-    //    window.location.href = "/client-form.html";
-    //});
-
-    // ============================
-    // AFEGIR CLIENT - obrir popup
+    // AFEGIR CLIENT - popup
     // ============================
     addClientBtn.addEventListener("click", function () {
         window.open("/client-form.html", "_blank", "width=800,height=800");
@@ -77,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!clients || clients.length === 0) {
             const row = document.createElement("tr");
-            row.innerHTML = "<td colspan='5' style='text-align:center;'>No s'han trobat resultats</td>";
+            row.innerHTML = "<td colspan='8' style='text-align:center;'>No s'han trobat resultats</td>";
             tbody.appendChild(row);
             return;
         }
@@ -88,6 +97,9 @@ document.addEventListener("DOMContentLoaded", function () {
             row.innerHTML = `
                 <td>${client.id}</td>
                 <td class="name">${client.name}</td>
+                <td class="surname">${client.surname || ""}</td>
+                <td class="edat">${client.edat != null ? client.edat : ""}</td>
+                <td class="dni">${client.dni || ""}</td>
                 <td class="email">${client.email}</td>
                 <td>
                     <button class="show-address-btn" data-id="${client.id}">Mostra adreça</button>
@@ -124,7 +136,6 @@ document.addEventListener("DOMContentLoaded", function () {
         // UPDATE / GUARDAR
         document.querySelectorAll(".update-btn").forEach(button => {
             button.addEventListener("click", function () {
-
                 const row = this.closest("tr");
 
                 if (this.textContent === "Update") {
@@ -149,13 +160,23 @@ document.addEventListener("DOMContentLoaded", function () {
     // ============================
     function enableEdit(button) {
         const row = button.closest("tr");
+
         const nameCell = row.querySelector(".name");
+        const surnameCell = row.querySelector(".surname");
+        const ageCell = row.querySelector(".edat");
+        const dniCell = row.querySelector(".dni");
         const emailCell = row.querySelector(".email");
 
         const name = nameCell.textContent.trim();
+        const surname = surnameCell.textContent.trim();
+        const edat = ageCell.textContent.trim();
+        const dni = dniCell.textContent.trim();
         const email = emailCell.textContent.trim();
 
         nameCell.innerHTML = `<input type="text" class="name-input" value="${name}">`;
+        surnameCell.innerHTML = `<input type="text" class="surname-input" value="${surname}">`;
+        ageCell.innerHTML = `<input type="number" class="edat-input" value="${edat}">`;
+        dniCell.innerHTML = `<input type="text" class="dni-input" value="${dni}">`;
         emailCell.innerHTML = `<input type="text" class="email-input" value="${email}">`;
 
         button.textContent = "Guardar";
@@ -165,9 +186,13 @@ document.addEventListener("DOMContentLoaded", function () {
     // SAVE UPDATE
     // ============================
     function saveEdit(button, row) {
-
         const clientId = row.querySelector("td:first-child").textContent;
+
         const name = row.querySelector(".name-input").value.trim();
+        const surname = row.querySelector(".surname-input").value.trim();
+        const ageValue = row.querySelector(".edat-input").value.trim();
+        const edat = ageValue ? parseInt(ageValue) : null;
+        const dni = row.querySelector(".dni-input").value.trim();
         const email = row.querySelector(".email-input").value.trim();
 
         if (!name || !email) {
@@ -175,7 +200,6 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // 1️⃣ Obtenir client complet
         fetch(`http://localhost:8080/clients/${clientId}`)
             .then(res => {
                 if (!res.ok) throw new Error("Error carregant client");
@@ -186,6 +210,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 const updatedClient = {
                     id: fullClient.id,
                     name: name,
+                    surname: surname,
+                    edat: edat,
+                    dni: dni,
                     email: email,
                     addresses: fullClient.addresses || []
                 };
@@ -200,6 +227,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (!res.ok) throw new Error("Error actualitzant client");
 
                 row.querySelector(".name").textContent = name;
+                row.querySelector(".surname").textContent = surname;
+                row.querySelector(".edat").textContent = edat != null ? edat : "";
+                row.querySelector(".dni").textContent = dni;
                 row.querySelector(".email").textContent = email;
 
                 button.textContent = "Update";
@@ -266,3 +296,4 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
+    

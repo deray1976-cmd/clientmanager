@@ -7,28 +7,67 @@
 </head>
 <body>
 
-<h2>Portal de Clients</h2>
+<h2 th:text="#{client.portal.title}">Portal de Clients</h2>
 
-<form id="searchForm">
-    <label>Nom o Email del client:
-        <input type="text" id="searchInput" required>
+<!-- Formulari de selecció d'idioma -->
+<form method="get" id="languageForm">
+    <label>Idioma: 
+        <select name="lang" onchange="this.form.submit()">
+            <option value="ca" th:selected="${#locale.language=='ca'}">Català</option>
+            <option value="fr" th:selected="${#locale.language=='fr'}">Français</option>
+            <option value="en" th:selected="${#locale.language=='en'}">English</option>
+        </select>
     </label>
-    <button type="submit">Cercar</button>
 </form>
 
-<button id="showAllBtn" style="margin-top:10px;">Veure tots els clients</button>
+<!-- Formulari de cerca -->
+<!-- Formulari de cerca avançada -->
+<form id="searchForm">
 
-<button id="addClientBtn" style="margin-top:20px;">Afegir Client</button>
-    <!-- Reset -->
-    <button id="resetBtn" class="btn btn-reset">Reset</button>
+    <div class="search-grid">
+
+        <label>Nom:
+            <input type="text" id="searchName" placeholder="Nom">
+        </label>
+
+        <label>Cognom:
+            <input type="text" id="searchSurname" placeholder="Cognom">
+        </label>
+
+        <label>Edat:
+            <input type="number" id="searchEdat" placeholder="Edat" min="0">
+        </label>
+
+        <label>DNI:
+            <input type="text" id="searchDni" placeholder="DNI">
+        </label>
+
+        <label>Email:
+            <input type="email" id="searchEmail" placeholder="Email">
+        </label>
+
+    </div>
+
+    <button type="submit">Cercar</button>
+
+</form>
 
 
+<!-- Botons d'accions -->
+<button id="showAllBtn" th:text="#{button.all}" style="margin-top:10px;">Veure tots els clients</button>
+<button id="addClientBtn" th:text="#{button.add}" style="margin-top:20px;">Afegir Client</button>
+<button id="resetBtn" th:text="#{button.reset}" class="btn btn-reset">Reset</button>
+
+<!-- Resultats de la cerca -->
 <div id="searchResult">
     <table id="resultsTable">
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Nom</th>
+                <th>Cognom</th>
+                <th>Edat</th>
+                <th>DNI</th>
                 <th>Email</th>
                 <th>Adreces</th>
                 <th>Accions</th>
@@ -37,8 +76,7 @@
         <tbody></tbody>
     </table>
 </div>
+
 <script src="/js/search-client.js"></script>
-
 </body>
-
 </html>
