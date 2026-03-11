@@ -1,4 +1,4 @@
-package com.example.clientmanager.model;
+package com.example.clientmanager.entity;
 //import jakarta.persistence.*;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -8,7 +8,7 @@ import javax.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "addresses")
-public class Address {
+public class AddressEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,11 +21,11 @@ public class Address {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id")
-    private Client client;
+    private ClientEntity client;
 
-    public Address() {}
+    public AddressEntity() {}
 
-    public Address(String street, String city) {
+    public AddressEntity(String street, String city) {
         this.street = street;
         this.city = city;
     }
@@ -40,9 +40,9 @@ public class Address {
     public String getCity() { return city; }
     public void setCity(String city) { this.city = city; }
 
-    public Client getClient() { return client; }
+    public ClientEntity getClient() { return client; }
 
-    public void setClient(Client client) {
+    public void setClient(ClientEntity client) {
         this.client = client;
     }
 

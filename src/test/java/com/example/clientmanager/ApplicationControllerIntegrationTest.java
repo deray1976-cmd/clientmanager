@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-class ClientControllerIntegrationTest {
+class ApplicationControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -29,63 +29,43 @@ class ClientControllerIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    // -------------------------
-    // TEST CREAR I OBTENIR CLIENT
-    // -------------------------
-   @Test
-void testCreateAndGetClient() throws Exception {
-    // Crear un client amb almenys una adreça
-    ClientDto client = new ClientDto(
-            null,               // id
-            "Joan",             // name
-            "Pérez",            // surname
-            35,                 // edat
-            "12345678A",        // dni
-            "joan@test.com",    // email
-            List.of(
-                new AddressDto(null, "Carrer Gran", "Barcelona") // adreça obligatòria
-            )
-    );
-    @SuppressWarnings("null")
+    @Test
+    void testCreateAndGetClient() throws Exception {
+        ClientDto client = new ClientDto(
+                null,
+                "Joan",
+                "Pérez",
+                35,
+                "12345678A",
+                "joan@test.com",
+                List.of(new AddressDto(null, "Carrer Gran", "Barcelona"))
+        );
 
-    // POST: crea el client
-    String response = mockMvc.perform(post("/clients")
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(objectMapper.writeValueAsString(client)))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.name").value("Joan"))
-            .andExpect(jsonPath("$.surname").value("Pérez"))
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
+        String response = mockMvc.perform(post("/clients")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsString(client)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("Joan"))
+                .andExpect(jsonPath("$.surname").value("Pérez"))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-    // Converteix el JSON a ClientDto
-    ClientDto created = objectMapper.readValue(response, ClientDto.class);
+        ClientDto created = objectMapper.readValue(response, ClientDto.class);
 
-    // GET: obté el client creat per ID
-    mockMvc.perform(get("/clients/" + created.id()))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.email").value("joan@test.com"))
-            .andExpect(jsonPath("$.edat").value(35))
-            .andExpect(jsonPath("$.dni").value("12345678A"))
-            .andExpect(jsonPath("$.addresses[0].street").value("Carrer Gran"))
-            .andExpect(jsonPath("$.addresses[0].city").value("Barcelona"));
-}
+        mockMvc.perform(get("/clients/" + created.id()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("joan@test.com"))
+                .andExpect(jsonPath("$.edat").value(35))
+                .andExpect(jsonPath("$.dni").value("12345678A"))
+                .andExpect(jsonPath("$.addresses[0].street").value("Carrer Gran"))
+                .andExpect(jsonPath("$.addresses[0].city").value("Barcelona"));
+    }
 
-
-    // -------------------------
-    // TEST CLIENT INVÀLID
-    // -------------------------
     @Test
     void testCreateClient_InvalidData_400() throws Exception {
         ClientDto invalid = new ClientDto(
-                null,
-                "",
-                "",
-                null,
-                "",
-                "email-no-valid",
-                null
+                null, "", "", null, "", "email-no-valid", null
         );
 
         mockMvc.perform(post("/clients")
@@ -99,9 +79,6 @@ void testCreateAndGetClient() throws Exception {
                 .andExpect(jsonPath("$.errors.email").exists());
     }
 
-    // -------------------------
-    // TEST CLIENT NO TROBAT (GET)
-    // -------------------------
     @Test
     void testGetClientNotFound_404() throws Exception {
         mockMvc.perform(get("/clients/99"))
@@ -111,9 +88,6 @@ void testCreateAndGetClient() throws Exception {
                 .andExpect(jsonPath("$.timestamp").exists());
     }
 
-    // -------------------------
-    // TEST CLIENT NO TROBAT (DELETE)
-    // -------------------------
     @Test
     void testDeleteClientNotFound_404() throws Exception {
         mockMvc.perform(delete("/clients/99"))
@@ -123,9 +97,6 @@ void testCreateAndGetClient() throws Exception {
                 .andExpect(jsonPath("$.timestamp").exists());
     }
 
-    // -------------------------
-    // TEST CREAR CLIENT AMB ADRECES
-    // -------------------------
     @Test
     void testCreateClientWithAddresses() throws Exception {
         ClientDto client = new ClientDto(

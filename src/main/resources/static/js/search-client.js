@@ -236,7 +236,7 @@ searchForm.addEventListener("submit", function (e) {
             })
             .catch(err => {
                 console.error(err);
-                alert("No s'ha pogut actualitzar el client.");
+                alert("No s'ha pogut actualitzar el client. Revisa que es proporcionin tots els elements");
             });
     }
 

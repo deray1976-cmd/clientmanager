@@ -9,17 +9,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.clientmanager.dto.AddressDto;
-import com.example.clientmanager.dto.AddressMapper;
-import com.example.clientmanager.dto.ClientDto;
-import com.example.clientmanager.dto.ClientMapper;
-import com.example.clientmanager.dto.ClientSummaryDto;
-import com.example.clientmanager.exception.AddressNotFoundException;
+import com.example.clientmanager.entity.ClientEntity;
 import com.example.clientmanager.exception.ClientNotFoundException;
-import com.example.clientmanager.model.Address;
-import com.example.clientmanager.model.Client;
+import com.example.clientmanager.model.ClientModel;
 import com.example.clientmanager.repository.ClientRepository;
-import com.example.clientmanager.repository.AddressRepository;
+import com.example.clientmanager.entity.ClientEntityModelMapper;
 
 @Transactional(readOnly = true)
 @Service
@@ -28,47 +22,42 @@ public class ClientService {
     private static final Logger log = LoggerFactory.getLogger(ClientService.class);
 
     private final ClientRepository clientRepository;
-    private final AddressRepository addressRepository;
-    private final ClientMapper clientMapper;
-    private final AddressMapper addressMapper;
+    private final ClientEntityModelMapper clientEntityMapper;
 
     public ClientService(ClientRepository clientRepository,
-                         AddressRepository addressRepository,
-                         ClientMapper clientMapper,
-                         AddressMapper addressMapper) {
+                         ClientEntityModelMapper clientEntityMapper) {
         this.clientRepository = clientRepository;
-        this.addressRepository = addressRepository;
-        this.clientMapper = clientMapper;
-        this.addressMapper = addressMapper;
+        this.clientEntityMapper = clientEntityMapper;
     }
 
     // -------------------------
     // CREAR CLIENT
     // -------------------------
     @Transactional
-    public ClientDto createClient(ClientDto clientDto) {
-        log.debug("Intentant crear client: {}", clientDto);
-        Objects.requireNonNull(clientDto, "ClientDto no pot ser null");
+    public ClientModel createClient(ClientModel clientModel) {
 
-        Client clientEntity = clientMapper.toEntity(clientDto);
-        Objects.requireNonNull(clientEntity, "clientEntity no pot ser null");
+        log.debug("Intentant crear client model: {}", clientModel);
+        Objects.requireNonNull(clientModel, "ClientModel no pot ser null");
 
-        Client savedClient = clientRepository.save(clientEntity);
-        log.info("Client creat correctament amb id={}", savedClient.getId());
+        ClientEntity entity = clientEntityMapper.toEntity(clientModel);
+        ClientEntity saved = clientRepository.save(entity);
 
-        return clientMapper.toDto(savedClient);
+        log.info("Client creat correctament amb id={}", saved.getId());
+
+        return clientEntityMapper.toModel(saved);
     }
 
     // -------------------------
-    // CERCA GLOBAL (nom, cognom, edat, dni, email)
+    // CERCA GLOBAL
     // -------------------------
-    public List<ClientSummaryDto> searchClientsSummary(String query) {
-        log.debug("Buscant resum clients amb query={}", query);
+    public List<ClientModel> searchClients(String query) {
+
+        log.debug("Buscant clients amb query={}", query);
         Objects.requireNonNull(query, "La consulta no pot ser null");
 
         String value = "%" + query.trim().toLowerCase() + "%";
 
-        Specification<Client> spec = (root, q, cb) -> cb.or(
+        Specification<ClientEntity> spec = (root, q, cb) -> cb.or(
                 cb.like(cb.lower(root.get("name")), value),
                 cb.like(cb.lower(root.get("surname")), value),
                 cb.like(cb.lower(root.get("email")), value),
@@ -78,161 +67,121 @@ public class ClientService {
 
         return clientRepository.findAll(spec)
                 .stream()
-                .map(clientMapper::toSummaryDto)
+                .map(clientEntityMapper::toModel)
                 .toList();
     }
 
     // -------------------------
-    // CERCA AVANÇADA PER CAMPS
+    // CERCA AVANÇADA
     // -------------------------
-    public List<ClientSummaryDto> searchByFields(
+    public List<ClientModel> searchByFields(
             String name,
             String surname,
             Integer edat,
             String dni,
             String email) {
 
-        Specification<Client> spec = (root, query, cb) -> cb.conjunction();
+        Specification<ClientEntity> spec = (root, query, cb) -> cb.conjunction();
 
         if (name != null && !name.trim().isEmpty()) {
             String value = "%" + name.trim().toLowerCase() + "%";
-            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("name")), value));
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.lower(root.get("name")), value));
         }
 
         if (surname != null && !surname.trim().isEmpty()) {
             String value = "%" + surname.trim().toLowerCase() + "%";
-            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("surname")), value));
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.lower(root.get("surname")), value));
         }
 
         if (edat != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("edat"), edat));
+            spec = spec.and((root, query, cb) ->
+                    cb.equal(root.get("edat"), edat));
         }
 
         if (dni != null && !dni.trim().isEmpty()) {
             String value = "%" + dni.trim().toLowerCase() + "%";
-            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("dni")), value));
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.lower(root.get("dni")), value));
         }
 
         if (email != null && !email.trim().isEmpty()) {
             String value = "%" + email.trim().toLowerCase() + "%";
-            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("email")), value));
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.lower(root.get("email")), value));
         }
 
         return clientRepository.findAll(spec)
                 .stream()
-                .map(clientMapper::toSummaryDto)
+                .map(clientEntityMapper::toModel)
                 .toList();
     }
 
     // -------------------------
-    // TROBAR CLIENT PER ID
+    // TROBAR PER ID
     // -------------------------
-    public ClientDto findById(Long id) {
+    public ClientModel findById(Long id) {
+
         log.debug("Buscant client amb id={}", id);
         Objects.requireNonNull(id, "L'id no pot ser null");
 
-        Client client = clientRepository.findById(id)
+        ClientEntity entity = clientRepository.findById(id)
                 .orElseThrow(() -> new ClientNotFoundException(id));
-        return clientMapper.toDto(client);
+
+        return clientEntityMapper.toModel(entity);
     }
 
-    public List<ClientSummaryDto> getAllClientslite() {
-        return clientRepository.findAll()
-                .stream()
-                .map(clientMapper::toSummaryDto)
-                .toList();
-    }
+    // -------------------------
+    // OBTENIR TOTS
+    // -------------------------
+    public List<ClientModel> getAllClients() {
 
-    public List<ClientDto> getAllClients() {
         log.debug("Buscant tots els clients");
+
         return clientRepository.findAll()
                 .stream()
-                .map(clientMapper::toDto)
+                .map(clientEntityMapper::toModel)
                 .toList();
     }
 
     // -------------------------
-    // ACTUALITZAR CLIENT
+    // ACTUALITZAR
     // -------------------------
     @Transactional
-    public ClientDto update(Long id, ClientDto clientDto) {
+    public ClientModel update(Long id, ClientModel clientModel) {
+
         log.debug("Modificant client amb id={}", id);
 
         Objects.requireNonNull(id, "L'id no pot ser null");
-        Objects.requireNonNull(clientDto, "ClientDto no pot ser null");
+        Objects.requireNonNull(clientModel, "ClientModel no pot ser null");
 
-        Client existingClient = clientRepository.findById(id)
+        ClientEntity existing = clientRepository.findById(id)
                 .orElseThrow(() -> new ClientNotFoundException(id));
 
-        existingClient.setName(clientDto.name());
-        existingClient.setSurname(clientDto.surname());
-        existingClient.setEdat(clientDto.edat());
-        existingClient.setDni(clientDto.dni());
-        existingClient.setEmail(clientDto.email());
+        existing.setName(clientModel.getName());
+        existing.setSurname(clientModel.getSurname());
+        existing.setEdat(clientModel.getEdat());
+        existing.setDni(clientModel.getDni());
+        existing.setEmail(clientModel.getEmail());
 
-        Client updatedClient = clientRepository.save(existingClient);
-        return clientMapper.toDto(updatedClient);
+        ClientEntity updated = clientRepository.save(existing);
+
+        return clientEntityMapper.toModel(updated);
     }
 
     // -------------------------
-    // ELIMINAR CLIENT
+    // ELIMINAR
     // -------------------------
     @Transactional
     public void delete(Long id) {
+
         log.debug("Suprimint client amb id={}", id);
         Objects.requireNonNull(id, "L'id no pot ser null");
 
-        Client client = clientRepository.findById(id)
+        ClientEntity entity = clientRepository.findById(id)
                 .orElseThrow(() -> new ClientNotFoundException(id));
 
-        clientRepository.delete(client);
-    }
-
-    // -------------------------
-    // ACTUALITZAR ADRECES
-    // -------------------------
-    @Transactional
-    public List<AddressDto> updateAddresses(Long clientId, List<AddressDto> addressDtos) {
-        Objects.requireNonNull(clientId, "clientId no pot ser null");
-
-        Client client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new ClientNotFoundException(clientId));
-
-        client.getAddresses().clear();
-
-        if (addressDtos != null) {
-            addressDtos.forEach(addrDto -> {
-                Address addr = addressMapper.toEntity(addrDto);
-                addr.setClient(client);
-                client.getAddresses().add(addr);
-            });
-        }
-
-        clientRepository.save(client);
-
-        return client.getAddresses()
-                .stream()
-                .map(addressMapper::toDto)
-                .toList();
-    }
-
-    // -------------------------
-    // ELIMINAR ADREÇA
-    // -------------------------
-    @Transactional
-    public void deleteAddress(Long clientId, Long addressId) {
-        log.debug("Eliminant adreça id={} del client id={}", addressId, clientId);
-        Objects.requireNonNull(clientId, "clientId no pot ser null");
-
-        Client client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new ClientNotFoundException(clientId));
-
-        Address address = client.getAddresses().stream()
-                .filter(a -> a.getId().equals(addressId))
-                .findFirst()
-                .orElseThrow(() -> new AddressNotFoundException(addressId));
-
-        client.getAddresses().remove(address);
-        addressRepository.delete(address);
+        clientRepository.delete(entity);
     }
 }

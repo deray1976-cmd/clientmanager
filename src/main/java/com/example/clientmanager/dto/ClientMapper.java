@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
-import com.example.clientmanager.model.Client;
+import com.example.clientmanager.entity.ClientEntity;
 
 @Component
 public class ClientMapper {
@@ -17,7 +17,7 @@ public class ClientMapper {
     }
 
     // ENTITY -> DTO
-    public ClientDto toDto(Client client) {
+    public ClientDto toDto(ClientEntity client) {
         List<AddressDto> addresses = client.getAddresses() == null
                 ? List.of()
                 : client.getAddresses()
@@ -37,8 +37,8 @@ public class ClientMapper {
     }
 
     // DTO -> ENTITY
-    public Client toEntity(ClientDto dto) {
-        Client client = new Client();
+    public ClientEntity toEntity(ClientDto dto) {
+        ClientEntity client = new ClientEntity();
         client.setId(dto.id());
         client.setName(dto.name());
         client.setEmail(dto.email());
@@ -57,7 +57,7 @@ public class ClientMapper {
         return client;
     }
 
-    public ClientSummaryDto toSummaryDto(Client client) {
+    public ClientSummaryDto toSummaryDto(ClientEntity client) {
     return new ClientSummaryDto(
         client.getId(),
         client.getName(),

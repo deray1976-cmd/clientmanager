@@ -1,4 +1,4 @@
-package com.example.clientmanager.model;
+package com.example.clientmanager.entity;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +17,7 @@ import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "clients")
-public class Client {
+public class ClientEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,11 +46,11 @@ public class Client {
     private String email;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Address> addresses = new ArrayList<>();
+    private List<AddressEntity> addresses = new ArrayList<>();
 
-    public Client() {}
+    public ClientEntity() {}
 
-    public Client(String name, String surname, Integer edat, String dni, String email) {
+    public ClientEntity(String name, String surname, Integer edat, String dni, String email) {
         this.name = name;
         this.surname = surname;
         this.edat = edat;
@@ -71,21 +71,21 @@ public class Client {
     public void setDni(String dni) { this.dni = dni; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
-    public List<Address> getAddresses() { return addresses; }
+    public List<AddressEntity> getAddresses() { return addresses; }
 
-    public void addAddress(Address address) {
+    public void addAddress(AddressEntity address) {
         addresses.add(address);
         address.setClient(this);
     }
 
-    public void addAddresses(List<Address> addresses) {
+    public void addAddresses(List<AddressEntity> addresses) {
         this.addresses.clear();
-        for (Address address : addresses) {
+        for (AddressEntity address : addresses) {
             addAddress(address);
         }
     }
 
-    public void removeAddress(Address address) {
+    public void removeAddress(AddressEntity address) {
         addresses.remove(address);
         address.setClient(null);
     }
