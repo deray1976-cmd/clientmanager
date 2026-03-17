@@ -5,55 +5,82 @@
     <title>Crear Client</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body>
+<div class="container">
 
-<h2>Alta de Client</h2>
+    <h2>Alta de Client</h2>
 
-<form id="clientForm">
-    <!-- Camps bàsics -->
-    <label>Nom: <input type="text" id="name" required></label>
-    <div id="name-error" class="error"></div>
+    <form id="clientForm">
 
-    <label>Cognom: <input type="text" id="surname"></label>
-    <div id="surname-error" class="error"></div>
+        <fieldset>
+            <legend>Dades</legend>
 
-    <label>Edat: <input type="number" id="edat" min="0"></label>
-    <div id="edat-error" class="error"></div>
-
-    <label>DNI: <input type="text" id="dni"></label>
-    <div id="dni-error" class="error"></div>
-
-    <label>Email: <input type="email" id="email" required></label>
-    <div id="email-error" class="error"></div>
-
-    <h3>Adreces</h3>
-
-    <!-- Contenidor d’adreces -->
-    <div id="addresses-container">
-        <div class="address address-block">
-            <div class="address-fields">
-                <label>Carrer: <input type="text" class="street"></label>
-                <label>Ciutat: <input type="text" class="city"></label>
+            <div class="form-row">
+                <label for="name">Nom *</label>
+                <input type="text" id="name" required>
             </div>
-            <button type="button" class="remove-address-btn" onclick="removeAddress(this)">Eliminar</button>
+
+            <div class="form-row">
+                <label for="surname">Cognom</label>
+                <input type="text" id="surname">
+            </div>
+
+            <div class="form-row">
+                <label for="edat">Edat</label>
+                <input type="number" id="edat">
+            </div>
+
+            <div class="form-row">
+                <label for="dni">DNI</label>
+                <input type="text" id="dni">
+            </div>
+
+            <div class="form-row">
+                <label for="email">Email *</label>
+                <input type="email" id="email" required>
+            </div>
+
+        </fieldset>
+
+        <fieldset>
+            <legend>Adreces</legend>
+
+            <div id="addresses-container">
+
+                <div class="address-block">
+                    <div class="form-row">
+                        <label for="street1">Carrer</label>
+                        <input type="text" id="street1" class="street" required>
+                    </div>
+
+                    <div class="form-row">
+                        <label for="city1">Ciutat</label>
+                        <input type="text" id="city1" class="city" required>
+                    </div>
+
+                    <div class="address-actions">
+                        <button type="button" class="remove-address-btn btn" disabled>Eliminar</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <button type="button" id="addAddressBtn" class="btn btn-add">+ Afegir adreça</button>
+
+        </fieldset>
+
+        <div class="btn-container form-actions">
+            <button type="submit" class="btn">Desar</button>
+            <button type="button" id="resetFormBtn" class="btn btn-reset">Reset</button>
+            <button type="button" id="closeFormBtn" class="btn btn-close">Tancar</button>
         </div>
-    </div>
 
-    <!-- Botó per afegir nova adreça -->
-    <button type="button" onclick="addAddress()">+ Afegir adreça</button>
+    </form>
 
-    <!-- Submit -->
-    <button type="submit">Desar Client</button>
-
-    <!-- Reset -->
-    <button type="button" id="resetFormBtn">Reset</button>
-
-    <!-- Tancar finestra -->
-    <button type="button" id="closeFormBtn">Tancar</button>
-</form>
-
-<pre id="result"></pre>
+</div>
 
 <script src="/js/client-form.js"></script>
+
 </body>
 </html>

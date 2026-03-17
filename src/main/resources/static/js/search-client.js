@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     addClientBtn.addEventListener("click", () => {
-        window.open("/client-form.html", "_blank", "width=800,height=800");
+        window.open("/client-form.html", "_blank", "width=800,height=1000");
     });
 
     resetBtn.addEventListener("click", () => window.location.href = `${BASE_URL}/`);
