@@ -1,12 +1,17 @@
-document.addEventListener("DOMContentLoaded", function () {
+//=======================================================================*
+//                  search-clients.js (VERSIÓ AMB ADRECES)
+//=======================================================================*
+
+document.addEventListener("DOMContentLoaded", () => {
 
     const searchForm = document.getElementById("searchForm");
     const table = document.getElementById("resultsTable");
     const tbody = table.querySelector("tbody");
     const addClientBtn = document.getElementById("addClientBtn");
     const showAllBtn = document.getElementById("showAllBtn");
-    const resetBtn = document.getElementById("resetBtn"); 
+    const resetBtn = document.getElementById("resetBtn");
 
+    const BASE_URL = "http://localhost:8080";
     table.style.display = "none";
 
     // ============================
@@ -14,102 +19,65 @@ document.addEventListener("DOMContentLoaded", function () {
     // ============================
     function fetchClients(url) {
         fetch(url)
-            .then(response => {
-                if (!response.ok) return [];
-                return response.json();
-            })
+            .then(res => res.ok ? res.json() : [])
             .then(data => renderTable(data))
-            .catch(error => {
-                console.error("Error:", error);
+            .catch(err => {
+                console.error("Error fetching clients:", err);
                 renderTable([]);
             });
     }
 
     // ============================
-// CERCA
-// ============================
-searchForm.addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    const name = document.getElementById("searchName").value.trim();
-    const surname = document.getElementById("searchSurname").value.trim();
-    const edat = document.getElementById("searchEdat").value.trim();
-    const dni = document.getElementById("searchDni").value.trim();
-    const email = document.getElementById("searchEmail").value.trim();
-
-    const params = new URLSearchParams();
-
-    if (name) params.append("name", name);
-    if (surname) params.append("surname", surname);
-    if (edat) params.append("edat", edat);
-    if (dni) params.append("dni", dni);
-    if (email) params.append("email", email);
-
-    //fetchClients("http://localhost:8080/clients/search?" + params.toString());
-    alert("submit "+params.toString());
-    fetchClients("http://localhost:8080/clients?" + params.toString());
-});
-
+    // CERCA
     // ============================
-    // VEURE TOTS
-    // ============================
-    showAllBtn.addEventListener("click", function () {
-        document.getElementById("searchName").value = "";
-        document.getElementById("searchSurname").value = "";
-        document.getElementById("searchEdat").value = "";
-        document.getElementById("searchDni").value = "";
-        document.getElementById("searchEmail").value = "";
-        fetchClients("http://localhost:8080/clients");
+    searchForm.addEventListener("submit", e => {
+        e.preventDefault();
+        const params = new URLSearchParams();
+        ["Name","Surname","Edat","Dni","Email"].forEach(id => {
+            const val = document.getElementById("search"+id).value.trim();
+            if(val) params.append(id.toLowerCase(), val);
+        });
+        fetchClients(`${BASE_URL}/clients?${params.toString()}`);
     });
 
-    // ============================
-    // AFEGIR CLIENT - popup
-    // ============================
-    addClientBtn.addEventListener("click", function () {
+    showAllBtn.addEventListener("click", () => {
+        ["Name","Surname","Edat","Dni","Email"].forEach(id => document.getElementById("search"+id).value = "");
+        fetchClients(`${BASE_URL}/clients`);
+    });
+
+    addClientBtn.addEventListener("click", () => {
         window.open("/client-form.html", "_blank", "width=800,height=800");
     });
 
-    // ============================
-    // RESET
-    // ============================
-    resetBtn.addEventListener("click", function () {
-        window.location.href = "http://localhost:8080/";
-    });
+    resetBtn.addEventListener("click", () => window.location.href = `${BASE_URL}/`);
 
     // ============================
     // RENDER TAULA
     // ============================
     function renderTable(clients) {
-
         tbody.innerHTML = "";
         table.style.display = "table";
 
-        if (!clients || clients.length === 0) {
-            const row = document.createElement("tr");
-            row.innerHTML = "<td colspan='8' style='text-align:center;'>No s'han trobat resultats</td>";
-            tbody.appendChild(row);
+        if(!clients || clients.length === 0){
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">No s'han trobat resultats</td></tr>`;
             return;
         }
 
         clients.forEach(client => {
             const row = document.createElement("tr");
-
             row.innerHTML = `
                 <td>${client.id}</td>
                 <td class="name">${client.name}</td>
                 <td class="surname">${client.surname || ""}</td>
-                <td class="edat">${client.edat != null ? client.edat : ""}</td>
+                <td class="edat">${client.edat ?? ""}</td>
                 <td class="dni">${client.dni || ""}</td>
                 <td class="email">${client.email}</td>
-                <td>
-                    <button class="show-address-btn" data-id="${client.id}">Mostra adreça</button>
-                </td>
+                <td><button class="show-address-btn" data-id="${client.id}">Mostra adreça</button></td>
                 <td>
                     <button class="update-btn" data-id="${client.id}">Update</button>
                     <button class="delete-btn" data-id="${client.id}">Delete</button>
                 </td>
             `;
-
             tbody.appendChild(row);
         });
 
@@ -120,152 +88,99 @@ searchForm.addEventListener("submit", function (e) {
     // ACTION LISTENERS
     // ============================
     function attachActionListeners() {
-
-        // DELETE
-        document.querySelectorAll(".delete-btn").forEach(button => {
-            button.addEventListener("click", function () {
-                const row = this.closest("tr");
-                const clientId = this.getAttribute("data-id");
-
-                if (confirm("Segur que vols eliminar aquest client?")) {
-                    deleteClient(clientId, row);
-                }
-            });
+        document.querySelectorAll(".delete-btn").forEach(btn => {
+            btn.onclick = () => {
+                const row = btn.closest("tr");
+                const clientId = btn.dataset.id;
+                if(confirm("Segur que vols eliminar aquest client?")) deleteClient(clientId,row);
+            };
         });
 
-        // UPDATE / GUARDAR
-        document.querySelectorAll(".update-btn").forEach(button => {
-            button.addEventListener("click", function () {
-                const row = this.closest("tr");
-
-                if (this.textContent === "Update") {
-                    enableEdit(this);
-                } else {
-                    saveEdit(this, row);
-                }
-            });
+        document.querySelectorAll(".update-btn").forEach(btn => {
+            btn.onclick = () => {
+                const row = btn.closest("tr");
+                btn.textContent === "Update" ? enableEdit(btn) : saveEdit(btn,row);
+            };
         });
 
-        // MOSTRA ADREÇA
-        document.querySelectorAll(".show-address-btn").forEach(button => {
-            button.addEventListener("click", function () {
-                const clientId = this.getAttribute("data-id");
-                showAddresses(clientId);
-            });
+        document.querySelectorAll(".show-address-btn").forEach(btn => {
+            btn.onclick = () => showAddresses(btn.dataset.id);
         });
     }
 
     // ============================
-    // ENABLE EDIT
+    // ENABLE / SAVE EDIT
     // ============================
-    function enableEdit(button) {
-        const row = button.closest("tr");
-
-        const nameCell = row.querySelector(".name");
-        const surnameCell = row.querySelector(".surname");
-        const ageCell = row.querySelector(".edat");
-        const dniCell = row.querySelector(".dni");
-        const emailCell = row.querySelector(".email");
-
-        const name = nameCell.textContent.trim();
-        const surname = surnameCell.textContent.trim();
-        const edat = ageCell.textContent.trim();
-        const dni = dniCell.textContent.trim();
-        const email = emailCell.textContent.trim();
-
-        nameCell.innerHTML = `<input type="text" class="name-input" value="${name}">`;
-        surnameCell.innerHTML = `<input type="text" class="surname-input" value="${surname}">`;
-        ageCell.innerHTML = `<input type="number" class="edat-input" value="${edat}">`;
-        dniCell.innerHTML = `<input type="text" class="dni-input" value="${dni}">`;
-        emailCell.innerHTML = `<input type="text" class="email-input" value="${email}">`;
-
-        button.textContent = "Guardar";
+    function enableEdit(btn){
+        const row = btn.closest("tr");
+        ["name","surname","edat","dni","email"].forEach(cls=>{
+            const cell = row.querySelector(`.${cls}`);
+            const val = cell.textContent.trim();
+            cell.innerHTML = `<input type="${cls==="edat"?"number":"text"}" class="${cls}-input" value="${val}">`;
+        });
+        btn.textContent="Guardar";
     }
 
-    // ============================
-    // SAVE UPDATE
-    // ============================
-    function saveEdit(button, row) {
+    function saveEdit(btn,row){
         const clientId = row.querySelector("td:first-child").textContent;
 
-        const name = row.querySelector(".name-input").value.trim();
-        const surname = row.querySelector(".surname-input").value.trim();
-        const ageValue = row.querySelector(".edat-input").value.trim();
-        const edat = ageValue ? parseInt(ageValue) : null;
-        const dni = row.querySelector(".dni-input").value.trim();
-        const email = row.querySelector(".email-input").value.trim();
+        const updated = {
+            id: clientId,
+            name: row.querySelector(".name-input").value.trim(),
+            surname: row.querySelector(".surname-input").value.trim(),
+            edat: parseInt(row.querySelector(".edat-input").value.trim()) || 0, // obligatori
+            dni: row.querySelector(".dni-input").value.trim(),
+            email: row.querySelector(".email-input").value.trim(),
+            addresses: window.clientAddresses || [] // <-- inclou adreces
+        };
 
-        if (!name || !email) {
-            alert("Nom i email són obligatoris");
+        if(!updated.name || !updated.email || updated.addresses.length === 0){
+            alert("Nom, email i almenys una adreça són obligatoris");
             return;
         }
 
-        fetch(`http://localhost:8080/clients/${clientId}`)
-            .then(res => {
-                if (!res.ok) throw new Error("Error carregant client");
-                return res.json();
-            })
-            .then(fullClient => {
-
-                const updatedClient = {
-                    id: fullClient.id,
-                    name: name,
-                    surname: surname,
-                    edat: edat,
-                    dni: dni,
-                    email: email,
-                    addresses: fullClient.addresses || []
-                };
-
-                return fetch(`http://localhost:8080/clients/${clientId}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(updatedClient)
-                });
-            })
-            .then(res => {
-                if (!res.ok) throw new Error("Error actualitzant client");
-
-                row.querySelector(".name").textContent = name;
-                row.querySelector(".surname").textContent = surname;
-                row.querySelector(".edat").textContent = edat != null ? edat : "";
-                row.querySelector(".dni").textContent = dni;
-                row.querySelector(".email").textContent = email;
-
-                button.textContent = "Update";
-            })
-            .catch(err => {
-                console.error(err);
-                alert("No s'ha pogut actualitzar el client. Revisa que es proporcionin tots els elements");
-            });
+        fetch(`${BASE_URL}/clients/${clientId}`,{
+            method:"PUT",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify(updated)
+        })
+        .then(res=>{
+            if(!res.ok) throw new Error("Error actualitzant client");
+            ["name","surname","edat","dni","email"].forEach(cls=>row.querySelector(`.${cls}`).textContent = updated[cls] ?? "");
+            btn.textContent="Update";
+        })
+        .catch(err=>{ console.error(err); alert("No s'ha pogut actualitzar el client."); });
     }
 
     // ============================
     // DELETE CLIENT
     // ============================
-    function deleteClient(id, row) {
-        fetch("http://localhost:8080/clients/" + id, { method: "DELETE" })
-            .then(response => {
-                if (!response.ok) throw new Error("Error eliminant client");
+    function deleteClient(id,row){
+        fetch(`${BASE_URL}/clients/${id}`,{method:"DELETE"})
+            .then(res=>{
+                if(!res.ok) throw new Error("Error eliminant client");
                 row.remove();
             })
-            .catch(error => {
-                console.error(error);
-                alert("No s'ha pogut eliminar el client.");
-            });
+            .catch(err=>{console.error(err); alert("No s'ha pogut eliminar el client.");});
     }
 
     // ============================
-    // SHOW ADDRESSES
+    // SHOW ADDRESSES POPUP
     // ============================
-    function showAddresses(clientId) {
-        fetch(`http://localhost:8080/clients/${clientId}`)
-            .then(res => res.json())
-            .then(client => {
+    function showAddresses(clientId){
+        fetch(`${BASE_URL}/clients/${clientId}?withAddresses=true`)
+            .then(res=>res.json())
+            .then(client=>{
+                // Guardem adreces globals per a PUT
+                window.clientAddresses = client.addresses || [];
 
-                const addressWindow = window.open("", "_blank", "width=1000,height=450");
-                const clientJson = JSON.stringify(client);
-
+                const addressWindow = window.open("", "_blank","width=1000,height=450");
+                const clientData = {
+                    id: client.id,
+                    name: client.name,
+                    surname: client.surname || "",
+                    addresses: window.clientAddresses
+                };
                 addressWindow.document.write(`
                     <!DOCTYPE html>
                     <html lang="ca">
@@ -275,25 +190,15 @@ searchForm.addEventListener("submit", function (e) {
                         <link rel="stylesheet" href="/css/style.css">
                     </head>
                     <body>
-                        <h2>Adreces de ${client.name}</h2>
                         <div id="addressContainer"></div>
-
-                        <script>
-                            window.clientData = ${clientJson};
-                        </script>
-
+                        <script>window.clientData=${JSON.stringify(clientData)};</script>
                         <script src="/js/address-popup.js"></script>
                     </body>
                     </html>
                 `);
-
                 addressWindow.document.close();
             })
-            .catch(err => {
-                console.error(err);
-                alert("No s'ha pogut carregar les adreces.");
-            });
+            .catch(err=>{console.error(err); alert("No s'han pogut carregar les adreces.");});
     }
 
 });
-    

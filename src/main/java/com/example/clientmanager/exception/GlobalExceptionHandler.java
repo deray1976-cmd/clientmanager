@@ -1,91 +1,83 @@
 package com.example.clientmanager.exception;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-//import jakarta.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.web.bind.MethodArgumentNotValidException;
-
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-
-//@ExceptionHandler(ClientNotFoundException.class)
-/*     public ResponseEntity<String> handleClientNotFound(ClientNotFoundException ex) {
-        // Retorna exactament el missatge que espera el test
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                             .body("Client amb id " + ex.getId() + " no trobat");
-    }
-*/
-@ExceptionHandler(ClientNotFoundException.class)
+    // -------------------------
+    // CLIENT NOT FOUND
+    // -------------------------
+    @ExceptionHandler(ClientNotFoundException.class)
     public ResponseEntity<ApiError> handleClientNotFound(ClientNotFoundException ex,
                                                          HttpServletRequest request) {
         ApiError error = new ApiError(
-                LocalDateTime.now(),     // timestamp
-                request.getRequestURI(), // path
-                ex.getMessage()          // missatge
+                LocalDateTime.now(),
+                request.getRequestURI(),
+                HttpStatus.NOT_FOUND.value(),
+                "Client amb id " + ex.getId() + " no trobat"
         );
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
+    // -------------------------
+    // INVALID CLIENT DATA
+    // -------------------------
+    @ExceptionHandler(InvalidClientDataException.class)
+    public ResponseEntity<ApiError> handleInvalidClientData(InvalidClientDataException ex,
+                                                            HttpServletRequest request) {
+        ApiError error = new ApiError(
+                LocalDateTime.now(),
+                request.getRequestURI(),
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
 
+    // -------------------------
+    // VALIDATION ERRORS (@Valid)
+    // -------------------------
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiError> handleValidationErrors(MethodArgumentNotValidException ex,
+                                                           HttpServletRequest request) {
 
+        Map<String, String> fieldErrors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+            fieldErrors.put(error.getField(), error.getDefaultMessage())
+        );
 
-/*@ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<String> handleValidationErrors(MethodArgumentNotValidException ex) {
-    String error = ex.getBindingResult()
-                     .getFieldErrors()
-                     .get(0)
-                     .getDefaultMessage();
+        ApiError error = new ApiError(
+                LocalDateTime.now(),
+                request.getRequestURI(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Errors de validació",
+                fieldErrors
+        );
 
-    return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
-            .body(error);
-    }*/
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
 
-@ExceptionHandler(MethodArgumentNotValidException.class)
-public ResponseEntity<Map<String, Object>> handleValidationErrors(
-        MethodArgumentNotValidException ex,
-        HttpServletRequest request) {
-
-    Map<String, String> errors = new HashMap<>();
-
-    ex.getBindingResult().getFieldErrors().forEach(error ->
-        errors.put(error.getField(), error.getDefaultMessage())
-    );
-
-    Map<String, Object> body = new HashMap<>();
-    body.put("timestamp", Instant.now());
-    body.put("path", request.getRequestURI());
-    body.put("errors", errors);
-
-    return ResponseEntity.badRequest().body(body);
-}
-
-   /*  @ExceptionHandler(Exception.class)
-public ResponseEntity<String> handleGeneralException(Exception ex) {
-    return ResponseEntity
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body("Error intern del servidor");
-}*/
-
-@ExceptionHandler(Exception.class)
+    // -------------------------
+    // EXCEPCIÓ GENERAL
+    // -------------------------
+    @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneralException(Exception ex, HttpServletRequest request) {
         ApiError error = new ApiError(
                 LocalDateTime.now(),
                 request.getRequestURI(),
-                ex.getMessage()
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Error intern del servidor: " + ex.getMessage()
         );
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

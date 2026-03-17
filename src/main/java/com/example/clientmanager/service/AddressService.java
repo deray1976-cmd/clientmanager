@@ -36,74 +36,124 @@ public class AddressService {
         this.addressEntityMapper = addressEntityMapper;
     }
 
-    // -------------------------
-    // ACTUALITZAR ADRECES D'UN CLIENT
-    // -------------------------
+    // =====================================
+    // OBTENIR ADRECES D'UN CLIENT
+    // =====================================
+    public List<AddressModel> findByClientId(Long clientId) {
+        log.debug("Buscant adreces del client {}", clientId);
+        Objects.requireNonNull(clientId, "clientId no pot ser null");
+
+        List<AddressEntity> entities = addressRepository.findByClientId(clientId);
+
+        return entities.stream()
+                .map(addressEntityMapper::toModel)
+                .collect(Collectors.toList());
+    }
+
+    // =====================================
+    // CREAR ADREÇA
+    // =====================================
+    @Transactional
+    public AddressModel createAddress(Long clientId, AddressModel model) {
+        log.debug("Creant adreça pel client {}", clientId);
+        Objects.requireNonNull(clientId, "clientId no pot ser null");
+        Objects.requireNonNull(model, "addressModel no pot ser null");
+
+        ClientEntity client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new ClientNotFoundException(clientId));
+
+        AddressEntity entity = addressEntityMapper.toEntity(model);
+        entity.setClient(client);
+        AddressEntity saved = addressRepository.save(entity);
+
+        return addressEntityMapper.toModel(saved);
+    }
+
+    // =====================================
+    // ACTUALITZAR ADREÇA
+    // =====================================
+    @Transactional
+    public AddressModel updateAddress(Long addressId, AddressModel model) {
+        log.debug("Actualitzant adreça {}", addressId);
+        Objects.requireNonNull(addressId, "addressId no pot ser null");
+
+        AddressEntity entity = addressRepository.findById(addressId)
+                .orElseThrow(() -> new AddressNotFoundException(addressId));
+
+        entity.setStreet(model.getStreet());
+        entity.setCity(model.getCity());
+
+        AddressEntity updated = addressRepository.save(entity);
+        return addressEntityMapper.toModel(updated);
+    }
+
+    // =====================================
+    // ELIMINAR ADREÇA
+    // =====================================
+    @Transactional
+    public void deleteAddress(Long addressId) {
+        log.debug("Eliminant adreça {}", addressId);
+        Objects.requireNonNull(addressId, "addressId no pot ser null");
+
+        AddressEntity entity = addressRepository.findById(addressId)
+                .orElseThrow(() -> new AddressNotFoundException(addressId));
+
+        addressRepository.delete(entity);
+        log.info("Adreça {} eliminada", addressId);
+    }
+
+    // =====================================
+    // ACTUALITZAR TOTES LES ADRECES
+    // (edició massiva sense perdre IDs)
+    // =====================================
     @Transactional
     public List<AddressModel> updateAddresses(Long clientId, List<AddressModel> addressModels) {
-
         log.debug("Actualitzant adreces client id={} amb {} adreces",
                 clientId,
                 addressModels != null ? addressModels.size() : 0);
 
         Objects.requireNonNull(clientId, "clientId no pot ser null");
 
-        ClientEntity clientEntity = clientRepository.findById(clientId)
+        ClientEntity client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new ClientNotFoundException(clientId));
 
-        // 🔴 Esborrar adreces existents
-        List<AddressEntity> existingAddresses = clientEntity.getAddresses();
-        existingAddresses.forEach(addr -> addr.setClient(null));
-        addressRepository.deleteAll(existingAddresses);
+        List<AddressEntity> existingAddresses = client.getAddresses();
 
-        clientEntity.getAddresses().clear();
+        // Eliminar adreces que no existeixen a la llista nova
+        List<Long> incomingIds = addressModels.stream()
+                .map(AddressModel::getId)
+                .filter(Objects::nonNull)
+                .toList();
 
-        // 🔴 Afegir noves adreces
-        if (addressModels != null && !addressModels.isEmpty()) {
+        List<AddressEntity> toDelete = existingAddresses.stream()
+                .filter(addr -> !incomingIds.contains(addr.getId()))
+                .toList();
 
-            List<AddressEntity> newEntities = addressModels.stream()
-                    .map(addressEntityMapper::toEntity)
-                    .peek(addr -> addr.setClient(clientEntity))
-                    .collect(Collectors.toList());
+        addressRepository.deleteAll(toDelete);
+        existingAddresses.removeAll(toDelete);
 
-            addressRepository.saveAll(newEntities);
-
-            clientEntity.getAddresses().addAll(newEntities);
+        // Actualitzar o afegir noves adreces
+        for (AddressModel model : addressModels) {
+            if (model.getId() != null) {
+                // Actualitzar si existeix
+                existingAddresses.stream()
+                        .filter(addr -> addr.getId().equals(model.getId()))
+                        .findFirst()
+                        .ifPresent(addr -> {
+                            addr.setStreet(model.getStreet());
+                            addr.setCity(model.getCity());
+                        });
+            } else {
+                // Crear nova adreça
+                AddressEntity newEntity = addressEntityMapper.toEntity(model);
+                newEntity.setClient(client);
+                addressRepository.save(newEntity);
+                existingAddresses.add(newEntity);
+            }
         }
 
-        log.info("Adreces client id={} actualitzades: {}",
-                clientId,
-                clientEntity.getAddresses().size());
-
-        return clientEntity.getAddresses().stream()
+        return existingAddresses.stream()
                 .map(addressEntityMapper::toModel)
                 .collect(Collectors.toList());
-    }
-
-    // -------------------------
-    // ELIMINAR ADREÇA
-    // -------------------------
-    @Transactional
-    public void deleteAddress(Long clientId, Long addressId) {
-
-        log.debug("Eliminant adreça id={} del client id={}",
-                addressId, clientId);
-
-        Objects.requireNonNull(clientId, "clientId no pot ser null");
-        Objects.requireNonNull(addressId, "addressId no pot ser null");
-
-        ClientEntity clientEntity = clientRepository.findById(clientId)
-                .orElseThrow(() -> new ClientNotFoundException(clientId));
-
-        AddressEntity addressEntity = clientEntity.getAddresses().stream()
-                .filter(a -> a.getId().equals(addressId))
-                .findFirst()
-                .orElseThrow(() -> new AddressNotFoundException(addressId));
-
-        clientEntity.getAddresses().remove(addressEntity);
-        addressRepository.delete(addressEntity);
-
-        log.info("Adreça id={} eliminada del client id={}",
-                addressId, clientId);
     }
 }
