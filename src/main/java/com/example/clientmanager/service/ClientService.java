@@ -1,7 +1,10 @@
 package com.example.clientmanager.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 
@@ -56,8 +59,11 @@ public class ClientService {
     @Transactional
     public ClientModel createClient(ClientModel clientModel) {
         Objects.requireNonNull(clientModel, "ClientModel no pot ser null");
+        validateClientModel(clientModel);
+        log.info("Creant client: {}", clientModel.getDni());
         ClientEntity entity = clientEntityMapper.toEntity(clientModel);
         ClientEntity saved = clientRepository.save(entity);
+        log.info("Client creat correctament amb id={}", saved.getId());
         return clientEntityMapper.toModel(saved);
     }
 
@@ -68,13 +74,19 @@ public class ClientService {
         Objects.requireNonNull(query, "La consulta no pot ser null");
         String value = "%" + query.trim().toLowerCase() + "%";
 
-        Specification<ClientEntity> spec = (root, q, cb) -> cb.or(
-                cb.like(cb.lower(root.get("name")), value),
-                cb.like(cb.lower(root.get("surname")), value),
-                cb.like(cb.lower(root.get("email")), value),
-                cb.like(cb.lower(root.get("dni")), value),
-                cb.equal(root.get("edat").as(String.class), query.trim())
-        );
+        Specification<ClientEntity> spec = (root, q, cb) -> {
+            List<javax.persistence.criteria.Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.like(cb.lower(root.get("name")), value));
+            predicates.add(cb.like(cb.lower(root.get("surname")), value));
+            predicates.add(cb.like(cb.lower(root.get("email")), value));
+            predicates.add(cb.like(cb.lower(root.get("dni")), value));
+            
+            if (query.trim().matches("\\d+")) {
+                predicates.add(cb.equal(root.get("edat"), Integer.parseInt(query.trim())));
+            }
+            
+            return cb.or(predicates.toArray(new javax.persistence.criteria.Predicate[0]));
+        };
 
         return clientRepository.findAll(spec).stream()
                 .map(clientEntityMapper::toModel)
@@ -146,6 +158,7 @@ public class ClientService {
     public ClientModel update(Long id, ClientModel clientModel) {
         Objects.requireNonNull(clientModel, "ClientModel no pot ser null");
         validateClientModel(clientModel);  // <-- Validació aquí
+        log.info("Actualitzant client amb id={}", id);
 
         ClientEntity existing = clientRepository.findById(id)
                 .orElseThrow(() -> new ClientNotFoundException(id));
@@ -156,48 +169,65 @@ public class ClientService {
         existing.setDni(clientModel.getDni());
         existing.setEmail(clientModel.getEmail());
 
+        log.info("Client {} actualitzat correctament", id);
         return clientEntityMapper.toModel(clientRepository.save(existing));
     }
 
     // -------------------------
     // ACTUALITZAR ADDRESSES
     // -------------------------
-    @Transactional
-    public ClientModel updateAddresses(Long clientId, List<AddressDto> addressesDto) {
-        ClientEntity client = clientRepository.findByIdWithAddresses(clientId)
-                .orElseThrow(() -> new EntityNotFoundException("Client no trobat amb id=" + clientId));
+   @Transactional
+public ClientModel updateAddresses(Long clientId, List<AddressDto> addressesDto) {
+    ClientEntity client = clientRepository.findByIdWithAddresses(clientId)
+            .orElseThrow(() -> new EntityNotFoundException("Client no trobat amb id=" + clientId));
 
-        for (AddressDto dto : addressesDto) {
-            if (dto.id() != null) {
-                AddressEntity existing = addressRepository.findById(dto.id())
-                        .orElseThrow(() -> new EntityNotFoundException("Address no trobada amb id=" + dto.id()));
+    Map<Long, AddressEntity> existingMap = client.getAddresses().stream()
+            .filter(a -> a.getId() != null)
+            .collect(Collectors.toMap(AddressEntity::getId, a -> a));
 
-                if (!existing.getClient().getId().equals(clientId)) {
-                    throw new IllegalArgumentException("L'adreça no pertany al client");
-                }
+    for (AddressDto dto : addressesDto) {
 
-                existing.setStreet(dto.street());
-                existing.setCity(dto.city());
-            } else {
+        // 🔹 ACTUALITZAR
+        if (dto.id() != null && existingMap.containsKey(dto.id())) {
+            AddressEntity existing = existingMap.get(dto.id());
+            existing.setStreet(dto.street());
+            existing.setCity(dto.city());
+        }
+
+        // 🔹 AFEGIR NOVA (evitant duplicats)
+        else if (dto.id() == null) {
+
+            boolean exists = client.getAddresses().stream()
+                    .anyMatch(a ->
+                            a.getStreet().equals(dto.street()) &&
+                            a.getCity().equals(dto.city())
+                    );
+
+            if (!exists) {
                 AddressEntity newAddress = new AddressEntity();
                 newAddress.setStreet(dto.street());
                 newAddress.setCity(dto.city());
                 newAddress.setClient(client);
+
                 client.getAddresses().add(newAddress);
             }
         }
-
-        return clientEntityMapper.toModel(clientRepository.save(client));
     }
+
+    return clientEntityMapper.toModel(clientRepository.save(client));
+}
+
 
     // -------------------------
     // ELIMINAR CLIENT
     // -------------------------
     @Transactional
     public void delete(Long id) {
+        log.info("Eliminant client amb id={}", id);
         ClientEntity entity = clientRepository.findById(id)
                 .orElseThrow(() -> new ClientNotFoundException(id));
         clientRepository.delete(entity);
+        log.info("Client {} eliminat correctament", id);
     }
 
     // -------------------------
@@ -205,13 +235,21 @@ public class ClientService {
     // -------------------------
     @Transactional
     public void deleteAddress(Long clientId, Long addressId) {
+        ClientEntity client = clientRepository.findByIdWithAddresses(clientId)
+                .orElseThrow(() -> new EntityNotFoundException("Client no trobat amb id=" + clientId));
+
         AddressEntity address = addressRepository.findById(addressId)
                 .orElseThrow(() -> new EntityNotFoundException("Address no trobada amb id=" + addressId));
 
         if (!address.getClient().getId().equals(clientId)) {
-            throw new IllegalArgumentException("L'adreça no pertany al client");
+            throw new IllegalArgumentException("L'adreça no pertany al client amb id=" + clientId);
         }
 
+        // Trencar relació amb el client
+        client.getAddresses().remove(address);
+        address.setClient(null);
+
+        // Eliminar de la base de dades
         addressRepository.delete(address);
     }
 }

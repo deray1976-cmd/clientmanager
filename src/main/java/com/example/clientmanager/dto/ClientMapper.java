@@ -5,19 +5,22 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
-import com.example.clientmanager.entity.ClientEntity;
+import com.example.clientmanager.model.ClientModel;
+import com.example.clientmanager.model.AddressModel;
 
 @Component
 public class ClientMapper {
 
-    private final AddressMapper addressMapper;
+    private final AddressDtoModelMapper addressMapper;
 
-    public ClientMapper(AddressMapper addressMapper) {
+    public ClientMapper(AddressDtoModelMapper addressMapper) {
         this.addressMapper = addressMapper;
     }
 
-    // ENTITY -> DTO
-    public ClientDto toDto(ClientEntity client) {
+    // -------------------
+    // MODEL -> DTO
+    // -------------------
+    public ClientDto toDto(ClientModel client) {
         List<AddressDto> addresses = client.getAddresses() == null
                 ? List.of()
                 : client.getAddresses()
@@ -25,46 +28,55 @@ public class ClientMapper {
                         .map(addressMapper::toDto)
                         .collect(Collectors.toList());
 
-           return new ClientDto(
+        return new ClientDto(
                 client.getId(),
                 client.getName(),
-                client.getSurname(),   // nou camp cognom
-                client.getEdat(),       // nou camp edat
-                client.getDni(),       // nou camp dni
+                client.getSurname(),
+                client.getEdat(),
+                client.getDni(),
                 client.getEmail(),
                 addresses
         );
     }
 
-    // DTO -> ENTITY
-    public ClientEntity toEntity(ClientDto dto) {
-        ClientEntity client = new ClientEntity();
+    // -------------------
+    // DTO -> MODEL
+    // -------------------
+    public ClientModel toModel(ClientDto dto) {
+        ClientModel client = new ClientModel();
         client.setId(dto.id());
         client.setName(dto.name());
-        client.setEmail(dto.email());
-        client.setSurname(dto.surname());   // nou camp cognom
-        client.setEdat(dto.edat());           // nou camp edat
-        client.setDni(dto.dni());           // nou camp dni
+        client.setSurname(dto.surname());
+        client.setEdat(dto.edat());
+        client.setDni(dto.dni());
         client.setEmail(dto.email());
 
         if (dto.addresses() != null) {
-            dto.addresses()
+            List<AddressModel> addressModels = dto.addresses()
                     .stream()
-                    .map(addressMapper::toEntity)
-                    .forEach(client::addAddress); // suposant que addAddress estableix client a Address
+                    .map(addressDto -> {
+                        AddressModel model = addressMapper.toModel(addressDto);
+                        model.setClientId(client.getId()); // assignem només l’ID
+                        return model;
+                    })
+                    .collect(Collectors.toList());
+            client.setAddresses(addressModels);
         }
 
         return client;
     }
 
-    public ClientSummaryDto toSummaryDto(ClientEntity client) {
-    return new ClientSummaryDto(
-        client.getId(),
-        client.getName(),
-        client.getSurname(),  // afegim cognom al resum si volem
-        client.getEdat(),
-        client.getDni(),
-        client.getEmail()
-    );
-}
+    // -------------------
+    // MODEL -> RESUM DTO
+    // -------------------
+    public ClientSummaryDto toSummaryDto(ClientModel client) {
+        return new ClientSummaryDto(
+                client.getId(),
+                client.getName(),
+                client.getSurname(),
+                client.getEdat(),
+                client.getDni(),
+                client.getEmail()
+        );
+    }
 }

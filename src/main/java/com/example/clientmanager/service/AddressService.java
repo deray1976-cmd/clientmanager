@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -36,9 +38,19 @@ public class AddressService {
         this.addressEntityMapper = addressEntityMapper;
     }
 
+
+    @Transactional(readOnly = true)
+    public AddressModel findById(Long addressId) {
+        AddressEntity entity = addressRepository.findById(addressId)
+                .orElseThrow(() -> new EntityNotFoundException("Address no trobada amb id=" + addressId));
+        return addressEntityMapper.toModel(entity); // ja inclou el client
+    }
+
+
     // =====================================
     // OBTENIR ADRECES D'UN CLIENT
     // =====================================
+    
     public List<AddressModel> findByClientId(Long clientId) {
         log.debug("Buscant adreces del client {}", clientId);
         Objects.requireNonNull(clientId, "clientId no pot ser null");

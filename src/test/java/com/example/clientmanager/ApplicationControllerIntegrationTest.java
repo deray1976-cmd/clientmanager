@@ -38,11 +38,11 @@ class ApplicationControllerIntegrationTest {
                 35,
                 "12345678A",
                 "joan@test.com",
-                List.of(new AddressDto(null, "Carrer Gran", "Barcelona"))
+                List.of(new AddressDto(null, "Carrer Gran", "Barcelona", null))
         );
 
         String response = mockMvc.perform(post("/clients")
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(client)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("Joan"))
@@ -65,18 +65,19 @@ class ApplicationControllerIntegrationTest {
     @Test
     void testCreateClient_InvalidData_400() throws Exception {
         ClientDto invalid = new ClientDto(
-                null, "", "", null, "", "email-no-valid", null
+                null, "", "", null, "", "email-no-valid", List.of()
         );
 
         mockMvc.perform(post("/clients")
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.name").exists())
                 .andExpect(jsonPath("$.errors.surname").exists())
                 .andExpect(jsonPath("$.errors.edat").exists())
                 .andExpect(jsonPath("$.errors.dni").exists())
-                .andExpect(jsonPath("$.errors.email").exists());
+                .andExpect(jsonPath("$.errors.email").exists())
+                .andExpect(jsonPath("$.errors.addresses").exists());
     }
 
     @Test
@@ -107,13 +108,13 @@ class ApplicationControllerIntegrationTest {
                 "87654321B",
                 "anna@test.com",
                 List.of(
-                        new AddressDto(null, "Carrer Major", "Barcelona"),
-                        new AddressDto(null, "Carrer Petita", "Girona")
+                        new AddressDto(null, "Carrer Major", "Barcelona", null),
+                        new AddressDto(null, "Carrer Petita", "Girona", null)
                 )
         );
 
         String response = mockMvc.perform(post("/clients")
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(client)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.addresses.length()").value(2))

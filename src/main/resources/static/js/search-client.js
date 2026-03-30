@@ -128,14 +128,15 @@ document.addEventListener("DOMContentLoaded", () => {
             id: clientId,
             name: row.querySelector(".name-input").value.trim(),
             surname: row.querySelector(".surname-input").value.trim(),
-            edat: parseInt(row.querySelector(".edat-input").value.trim()) || 0, // obligatori
+            edat: parseInt(row.querySelector(".edat-input").value.trim()) || 0,
             dni: row.querySelector(".dni-input").value.trim(),
-            email: row.querySelector(".email-input").value.trim(),
-            addresses: window.clientAddresses || [] // <-- inclou adreces
+            email: row.querySelector(".email-input").value.trim()
+            // Les adreces NO s'inclouen aquí - es manejen per separat
         };
 
-        if(!updated.name || !updated.email || updated.addresses.length === 0){
-            alert("Nom, email i almenys una adreça són obligatoris");
+        // Validar SOLO nom i email (els camps del client)
+        if(!updated.name || !updated.email){
+            alert("Nom i email són obligatoris");
             return;
         }
 
@@ -148,6 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if(!res.ok) throw new Error("Error actualitzant client");
             ["name","surname","edat","dni","email"].forEach(cls=>row.querySelector(`.${cls}`).textContent = updated[cls] ?? "");
             btn.textContent="Update";
+            alert("Client actualitzat correctament!");
         })
         .catch(err=>{ console.error(err); alert("No s'ha pogut actualitzar el client."); });
     }

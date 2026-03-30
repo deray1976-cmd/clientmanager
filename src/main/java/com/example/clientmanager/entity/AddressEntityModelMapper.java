@@ -8,21 +8,19 @@ public class AddressEntityModelMapper {
 
     public AddressModel toModel(AddressEntity entity) {
         if (entity == null) return null;
-
         return new AddressModel(
-                entity.getId(),
-                entity.getStreet(),
-                entity.getCity()
-        );
+            entity.getId(),
+            entity.getStreet(),
+            entity.getCity()
+        ); // NO inclou client
     }
 
     public AddressEntity toEntity(AddressModel model) {
         if (model == null) return null;
-
         AddressEntity entity = new AddressEntity();
         entity.setId(model.getId());
         entity.setStreet(model.getStreet());
         entity.setCity(model.getCity());
-        return entity;
+        return entity; // client s’assigna al servei quan cal
     }
 }

@@ -43,11 +43,15 @@ class ApplicationManagerApplicationTests {
 
         Mockito.when(clientRepository.findAll()).thenReturn(List.of(c1, c2));
 
-        Mockito.when(clientEntityMapper.toModel(c1))
-                .thenReturn(new ClientModel(1L, "Joan", "Pérez", 30, "12345678A", "joan@example.com", List.of()));
+        // Ara el constructor només rep id, name, surname, edat, dni, email
+        ClientModel model1 = new ClientModel(1L, "Joan", "Pérez", 30, "12345678A", "joan@example.com");
+        model1.setAddresses(List.of());
 
-        Mockito.when(clientEntityMapper.toModel(c2))
-                .thenReturn(new ClientModel(2L, "Anna", "Garcia", 28, "87654321B", "anna@example.com", List.of()));
+        ClientModel model2 = new ClientModel(2L, "Anna", "Garcia", 28, "87654321B", "anna@example.com");
+        model2.setAddresses(List.of());
+
+        Mockito.when(clientEntityMapper.toModel(c1)).thenReturn(model1);
+        Mockito.when(clientEntityMapper.toModel(c2)).thenReturn(model2);
 
         List<ClientModel> clients = clientService.getAllClients();
 
@@ -66,8 +70,10 @@ class ApplicationManagerApplicationTests {
 
         Mockito.when(clientRepository.findById(1L)).thenReturn(Optional.of(c));
 
-        Mockito.when(clientEntityMapper.toModel(c))
-                .thenReturn(new ClientModel(1L, "Joan", "Pérez", 30, "12345678A", "joan@example.com", List.of()));
+        ClientModel model = new ClientModel(1L, "Joan", "Pérez", 30, "12345678A", "joan@example.com");
+        model.setAddresses(List.of());
+
+        Mockito.when(clientEntityMapper.toModel(c)).thenReturn(model);
 
         ClientModel result = clientService.findById(1L);
 
@@ -83,7 +89,6 @@ class ApplicationManagerApplicationTests {
     // -------------------------
     @Test
     void testFindByIdNotExists() {
-
         Mockito.when(clientRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(ClientNotFoundException.class,
@@ -102,35 +107,21 @@ class ApplicationManagerApplicationTests {
                 "Pérez",
                 30,
                 "12345678A",
-                "joan@example.com",
-                List.of()
+                "joan@example.com"
         );
+        model.setAddresses(List.of());
 
-        ClientEntity entityToSave = new ClientEntity(
-                "Joan", "Pérez", 30, "12345678A", "joan@example.com"
-        );
-
-        ClientEntity savedEntity = new ClientEntity(
-                "Joan", "Pérez", 30, "12345678A", "joan@example.com"
-        );
+        ClientEntity entityToSave = new ClientEntity("Joan", "Pérez", 30, "12345678A", "joan@example.com");
+        ClientEntity savedEntity = new ClientEntity("Joan", "Pérez", 30, "12345678A", "joan@example.com");
         savedEntity.setId(1L);
 
-        Mockito.when(clientEntityMapper.toEntity(model))
-                .thenReturn(entityToSave);
+        Mockito.when(clientEntityMapper.toEntity(model)).thenReturn(entityToSave);
+        Mockito.when(clientRepository.save(entityToSave)).thenReturn(savedEntity);
 
-        Mockito.when(clientRepository.save(entityToSave))
-                .thenReturn(savedEntity);
+        ClientModel savedModel = new ClientModel(1L, "Joan", "Pérez", 30, "12345678A", "joan@example.com");
+        savedModel.setAddresses(List.of());
 
-        Mockito.when(clientEntityMapper.toModel(savedEntity))
-                .thenReturn(new ClientModel(
-                        1L,
-                        "Joan",
-                        "Pérez",
-                        30,
-                        "12345678A",
-                        "joan@example.com",
-                        List.of()
-                ));
+        Mockito.when(clientEntityMapper.toModel(savedEntity)).thenReturn(savedModel);
 
         ClientModel result = clientService.createClient(model);
 
@@ -159,7 +150,6 @@ class ApplicationManagerApplicationTests {
     // -------------------------
     @Test
     void testDeleteClientNotExists() {
-
         Mockito.when(clientRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(ClientNotFoundException.class,

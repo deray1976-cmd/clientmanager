@@ -1,5 +1,6 @@
 package com.example.clientmanager.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClientModel {
@@ -12,20 +13,28 @@ public class ClientModel {
     private String email;
     private List<AddressModel> addresses;
 
-    public ClientModel() {}
+    public ClientModel() {
+        this.addresses = new ArrayList<>();
+    }
 
-    public ClientModel(Long id, String name, String surname, Integer edat,
-                       String dni, String email, List<AddressModel> addresses) {
+    // Constructor complet amb llista d'adreces
+    public ClientModel(Long id, String name, String surname, Integer edat, String dni, String email, List<AddressModel> addresses) {
         this.id = id;
         this.name = name;
         this.surname = surname;
         this.edat = edat;
         this.dni = dni;
         this.email = email;
-        this.addresses = addresses;
+        // si la llista és null, inicialitzem una llista buida
+        this.addresses = addresses != null ? addresses : new ArrayList<>();
     }
 
-    // getters / setters
+    // Constructor sense adreces (opcjonal)
+    public ClientModel(Long id, String name, String surname, Integer edat, String dni, String email) {
+        this(id, name, surname, edat, dni, email, new ArrayList<>());
+    }
+
+    // Getters i setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -46,4 +55,10 @@ public class ClientModel {
 
     public List<AddressModel> getAddresses() { return addresses; }
     public void setAddresses(List<AddressModel> addresses) { this.addresses = addresses; }
+
+    // Afegir una adreça individual
+    public void addAddress(AddressModel address) {
+        if (this.addresses == null) this.addresses = new ArrayList<>();
+        this.addresses.add(address);
+    }
 }

@@ -1,36 +1,43 @@
 package com.example.clientmanager.entity;
 
-import com.example.clientmanager.entity.ClientEntity;
 import com.example.clientmanager.model.ClientModel;
+import com.example.clientmanager.model.AddressModel;
+import com.example.clientmanager.entity.ClientEntity;
+import com.example.clientmanager.entity.AddressEntity;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
 public class ClientEntityModelMapper {
 
-    private final AddressEntityModelMapper addressMapper;
+    private final AddressEntityModelMapper addressEntityMapper;
 
-    public ClientEntityModelMapper(AddressEntityModelMapper addressMapper) {
-        this.addressMapper = addressMapper;
+    public ClientEntityModelMapper(AddressEntityModelMapper addressEntityMapper) {
+        this.addressEntityMapper = addressEntityMapper;
     }
 
     public ClientModel toModel(ClientEntity entity) {
         if (entity == null) return null;
 
-        return new ClientModel(
-                entity.getId(),
-                entity.getName(),
-                entity.getSurname(),
-                entity.getEdat(),
-                entity.getDni(),
-                entity.getEmail(),
-                entity.getAddresses() != null
-                        ? entity.getAddresses().stream()
-                              .map(addressMapper::toModel)
-                              .collect(Collectors.toList())
-                        : null
+        ClientModel model = new ClientModel(
+            entity.getId(),
+            entity.getName(),
+            entity.getSurname(),
+            entity.getEdat(),
+            entity.getDni(),
+            entity.getEmail(),
+            List.of() // <-- llista buida per evitar el constructor undefined
         );
+
+        // Mappejar adreces però sense referència al client dins cada adreça
+        List<AddressModel> addresses = entity.getAddresses().stream()
+            .map(addressEntityMapper::toModel)
+            .collect(Collectors.toList());
+
+        model.setAddresses(addresses);
+        return model;
     }
 
     public ClientEntity toEntity(ClientModel model) {
@@ -45,16 +52,12 @@ public class ClientEntityModelMapper {
         entity.setEmail(model.getEmail());
 
         if (model.getAddresses() != null) {
-            entity.addAddresses(
-                    model.getAddresses().stream()
-                            .map(addressMapper::toEntity)
-                            .collect(Collectors.toList())
-            );
-
-            // 🔴 IMPORTANT: mantenir la relació bidireccional
-            for (AddressEntity address : entity.getAddresses()) {
-                address.setClient(entity);
-            }
+            List<AddressEntity> addressEntities = model.getAddresses().stream()
+                .map(addressEntityMapper::toEntity)
+                .collect(Collectors.toList());
+            // assignar client a cada adreça
+            addressEntities.forEach(a -> a.setClient(entity));
+            entity.setAddresses(addressEntities);
         }
 
         return entity;
