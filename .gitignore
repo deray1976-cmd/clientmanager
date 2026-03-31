@@ -58,3 +58,9 @@ logs/
 *.iml
 .project
 .classpath
+
+# Database files
+data/*.mv.db
+data/*.trace.db
+data/*.lock.db
+

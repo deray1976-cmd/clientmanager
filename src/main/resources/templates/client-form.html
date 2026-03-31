@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Crear Client</title>
+    <title th:text="#{client.form.title}">Crear Client</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 
 <body>
 <div class="container">
 
-    <h2>Alta de Client</h2>
+    <h2 th:text="#{client.form.title}">Alta de Client</h2>
 
     <form id="clientForm">
 
@@ -17,63 +17,63 @@
             <legend>Dades</legend>
 
             <div class="form-row">
-                <label for="name">Nom *</label>
+                <label for="name" th:text="#{client.name} + ' *'">Nom *</label>
                 <input type="text" id="name" required>
             </div>
 
             <div class="form-row">
-                <label for="surname">Cognom</label>
+                <label for="surname" th:text="#{client.surname}">Cognom</label>
                 <input type="text" id="surname">
             </div>
 
             <div class="form-row">
-                <label for="edat">Edat</label>
+                <label for="edat" th:text="#{client.age}">Edat</label>
                 <input type="number" id="edat">
             </div>
 
             <div class="form-row">
-                <label for="dni">DNI</label>
+                <label for="dni" th:text="#{client.dni}">DNI</label>
                 <input type="text" id="dni">
             </div>
 
             <div class="form-row">
-                <label for="email">Email *</label>
+                <label for="email" th:text="#{client.email} + ' *'">Email *</label>
                 <input type="email" id="email" required>
             </div>
 
         </fieldset>
 
         <fieldset>
-            <legend>Adreces</legend>
+            <legend th:text="#{table.addresses}">Adreces</legend>
 
             <div id="addresses-container">
 
                 <div class="address-block">
                     <div class="form-row">
-                        <label for="street1">Carrer</label>
+                        <label for="street1" th:text="#{client.address}">Carrer</label>
                         <input type="text" id="street1" class="street" required>
                     </div>
 
                     <div class="form-row">
-                        <label for="city1">Ciutat</label>
+                        <label for="city1" th:text="#{client.city}">Ciutat</label>
                         <input type="text" id="city1" class="city" required>
                     </div>
 
                     <div class="address-actions">
-                        <button type="button" class="remove-address-btn btn" disabled>Eliminar</button>
+                        <button type="button" class="remove-address-btn btn" disabled th:text="#{button.delete}">Eliminar</button>
                     </div>
                 </div>
 
             </div>
 
-            <button type="button" id="addAddressBtn" class="btn btn-add">+ Afegir adreça</button>
+            <button type="button" id="addAddressBtn" class="btn btn-add">+ <span th:text="#{button.add}">Afegir adreça</span></button>
 
         </fieldset>
 
         <div class="btn-container form-actions">
-            <button type="submit" class="btn">Desar</button>
-            <button type="button" id="resetFormBtn" class="btn btn-reset">Reset</button>
-            <button type="button" id="closeFormBtn" class="btn btn-close">Tancar</button>
+            <button type="submit" class="btn" th:text="#{button.save}">Desar</button>
+            <button type="button" id="resetFormBtn" class="btn btn-reset" th:text="#{button.reset}">Reset</button>
+            <button type="button" id="closeFormBtn" class="btn btn-close" th:text="#{button.close}">Tancar</button>
         </div>
 
     </form>

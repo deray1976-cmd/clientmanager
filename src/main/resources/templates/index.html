@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ca" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="#{client.portal.title}">Portal de Clients</title>
+    <link rel="stylesheet" href="/css/style.css"> <!-- CSS SAP Fiori -->
+</head>
+<body>
+
+<div class="container">
+
+    <h2 th:text="#{client.portal.title}">Portal de Clients</h2>
+
+    <!-- Formulari de selecció d'idioma -->
+    <form method="get" id="languageForm" class="form-row">
+        <label>
+            <span th:text="#{client.language}">Idioma:</span>
+            <select name="lang" onchange="this.form.submit()">
+                <option value="ca" th:selected="${#locale.language=='ca'}" th:text="#{lang.catalan}">Català</option>
+                <option value="fr" th:selected="${#locale.language=='fr'}" th:text="#{lang.french}">Français</option>
+                <option value="en" th:selected="${#locale.language=='en'}" th:text="#{lang.english}">English</option>
+            </select>
+        </label>
+    </form>
+
+    <!-- Formulari de cerca -->
+    <form id="searchForm">
+
+        <div class="search-grid">
+
+            <label>
+                <span th:text="#{client.name}">Nom:</span>
+                <input type="text" id="searchName" th:placeholder="#{client.name}">
+            </label>
+
+            <label>
+                <span th:text="#{client.surname}">Cognom:</span>
+                <input type="text" id="searchSurname" th:placeholder="#{client.surname}">
+            </label>
+
+            <label>
+                <span th:text="#{client.age}">Edat:</span>
+                <input type="number" id="searchEdat" th:placeholder="#{client.age}" min="0">
+            </label>
+
+            <label>
+                <span th:text="#{client.dni}">DNI:</span>
+                <input type="text" id="searchDni" th:placeholder="#{client.dni}">
+            </label>
+
+            <label>
+                <span th:text="#{client.email}">Email:</span>
+                <input type="email" id="searchEmail" th:placeholder="#{client.email}">
+            </label>
+
+        </div>
+
+        <div class="btn-container">
+            <button type="submit" class="btn btn-primary" th:text="#{button.search}">Cercar</button>
+            <button type="button" id="resetBtn" class="btn btn-reset" th:text="#{button.reset}">Reset</button>
+        </div>
+
+    </form>
+
+    <div class="btn-container btn-container-left">
+        <button id="showAllBtn" class="btn btn-primary" th:text="#{button.all}">Veure tots els clients</button>
+        <button id="addClientBtn" class="btn btn-add" th:text="#{button.add}">Afegir Client</button>
+    </div>
+
+    <!-- Resultats de la cerca -->
+    <div id="searchResult">
+        <table id="resultsTable">
+            <thead>
+                <tr>
+                    <th th:text="#{table.id}">ID</th>
+                    <th th:text="#{table.name}">Nom</th>
+                    <th th:text="#{table.surname}">Cognom</th>
+                    <th th:text="#{table.age}">Edat</th>
+                    <th th:text="#{table.dni}">DNI</th>
+                    <th th:text="#{table.email}">Email</th>
+                    <th th:text="#{table.addresses}">Adreces</th>
+                    <th th:text="#{table.actions}">Accions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script src="/js/search-client.js"></script>
+</body>
+</html>
